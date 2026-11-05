@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel,Field
 from datetime import datetime, timezone
 class ChatRequest(BaseModel):
@@ -59,6 +59,9 @@ def health():
     }
 @app.post("/chat",response_model=ChatResponse)
 def chat(request:ChatRequest):
+    if not request.message.strip():
+        raise HTTPException(status_code=400,
+                            detail = "Message can not be Empty")
     return ChatResponse(
         answer="dfghjdgfjhdgdfhjgdjhf",
         model="PlaceHolder",
@@ -93,7 +96,13 @@ def summarize(request:SummarizeRequest):
     )
 @app.post("/flashcard",response_model=FlashCardsResponse)
 def flashcard(request:FlashCardsRequest):
+    clean_topic = request.topic.strip()
+    if not clean_topic:
+        raise HTTPException(status_code=400,
+                            detail="Topic can not be empty")
+    flashcards = []
+    for i in range(1,request.number_flashcards+1):
+        flashcards.append(FlashCard(front=f"FlashCard {i}:dlkfhjdk",back=f"FlashCard {i}:djfgjdgf"))
     return FlashCardsResponse(
-        topic="dfjh",
-        flashcards=[FlashCard(front="fjdk",back="fjkdbn,d;")]
-                            )
+        topic=request.topic,
+        flashcards=flashcards)
