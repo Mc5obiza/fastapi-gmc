@@ -2,17 +2,17 @@ from fastapi import FastAPI
 from pydantic import BaseModel,Field
 from datetime import datetime, timezone
 class ChatRequest(BaseModel):
-    message:str
+    message:str = Field(...,min_length=1, max_length=2000)
 class QuizzRequest(BaseModel):
-    subject:str 
-    number_quizzes : int 
-    number_options : int 
+    subject:str = "Math"
+    number_quizzes : int = Field(default = 3,ge=3,le=10)
+    number_options : int  =3
 class SummarizeRequest(BaseModel):
     text:str
-    max_bullets:int
+    max_bullets:int = 3
 class FlashCardsRequest(BaseModel):
     topic:str
-    number_flashcards: int
+    number_flashcards: int = 7
 app = FastAPI()
 # Created an endpoint that runs root function
 @app.get("/")
