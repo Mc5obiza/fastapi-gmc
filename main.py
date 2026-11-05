@@ -11,9 +11,20 @@ class QuizzRequest(BaseModel):
     subject:str = Field(...,min_length=2,max_length=100)
     number_quizzes : int = Field(default = 3,ge=3,le=10)
     number_options : int = Field(default = 4,ge=4,le=6)
+class Quizz(BaseModel):
+    question:str
+    options : list[str]
+    correct:str
+class QuizzResponse(BaseModel):
+    topic : str
+    nb_questions : int
+    quizz : list[Quizz]
 class SummarizeRequest(BaseModel):
     text: str = Field(min_length=20, max_length=5000)
     max_bullets:int = Field(default=3,ge=3,le = 10)
+class SummarizeResponse(BaseModel):
+    summary : list[str]
+    word_count : int
 class FlashCardsRequest(BaseModel):
     topic:str = Field(...,min_length=3,max_length=10)
     number_flashcards: int = Field(default=7,ge = 7, le = 18)
@@ -53,36 +64,36 @@ def chat(request:ChatRequest):
         model="PlaceHolder",
         tokens_used=0
     )
-@app.post("/quizz")
+@app.post("/quizz",response_model=QuizzResponse)
 def quizz(request:QuizzRequest):
     questions = []
     for index in range(1,request.number_quizzes+1):
         questions.append(
-            {
-                "question":f"Question {index} about {request.subject}",
-                "options": [f"Option {index+1}" for index in range(1,request.number_options+1)],
-                "answer":"Option 1"
-            }
+        Quizz(
+                question=f"Question {index} about {request.subject}",
+                options= [f"Option {index+1}" for index in range(1,request.number_options+1)],
+                correct="Option 1"
         )
-    return {
-        "topic":request.subject,
-        "num_questions":request.number_quizzes,
-        "questions":questions
-        }
-@app.post("/summarize")
+        )
+    return QuizzResponse(
+        topic=request.subject,
+        nb_questions=request.number_quizzes,
+        quizz=questions
+    )
+@app.post("/summarize",response_model=SummarizeResponse)
 def summarize(request:SummarizeRequest):
     words = request.text.split()
-    return {
-        "summary":[
+    return SummarizeResponse(
+        summary=[
             "Normalement summary",
             "The Real summary"[:request.max_bullets],
             
         ],
-        "word_count":len(words)
-    }
-@app.post("/flashcard")
+        word_count=len(words)
+    )
+@app.post("/flashcard",response_model=FlashCardsResponse)
 def flashcard(request:FlashCardsRequest):
-    return {
-        "topic":f"{request.topic}",
-        "Flashcards":["dhfjksdh","hfdjk","hfdjkn","hdfjkn"]
-    }
+    return FlashCardsResponse(
+        topic="dfjh",
+        flashcards=[FlashCard(front="fjdk",back="fjkdbn,d;")]
+                            )
