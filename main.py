@@ -1,17 +1,15 @@
 from fastapi import FastAPI
 from pydantic import BaseModel,Field
+from datetime import datetime, timezone
 class ChatRequest(BaseModel):
     message:str
-class ChatResponse(BaseModel):
-    answer:str
-    model: str | None
-    tokens : int
 class QuizzRequest(BaseModel):
-    subject:str = Field(...,min_length=3)
-    number_quizzes : int = Field(...,lt=10,gt=1)
-    number_options : int = Field(...,gt=2,lt=5)
+    subject:str 
+    number_quizzes : int 
+    number_options : int 
 class SummarizeRequest(BaseModel):
-    topic:str
+    text:str
+    max_bullets:int
 class FlashCardsRequest(BaseModel):
     topic:str
     number_flashcards: int
@@ -33,9 +31,12 @@ def about():
 @app.get("/health")
 def health():
     return {
-        "status":"ok","version":"0.1.0"
+        "status":"ok",
+        "message":"API IS RUNNING",
+        "timestamp":datetime.now(timezone.utc).isoformat(),
+        "version":"0.2.0"
     }
-@app.post("/chat",response_model=ChatResponse)
+@app.post("/chat")
 def chat(request:ChatRequest):
     return {
         "answer":f"You asked for {request.message}",
@@ -44,21 +45,30 @@ def chat(request:ChatRequest):
     }
 @app.post("/quizz")
 def quizz(request:QuizzRequest):
-    return {
-        "topic":f"{request.subject}",
-        "quizzes":[
+    questions = []
+    for index in range(1,request.number_quizzes+1):
+        questions.append(
             {
-                "question":"fkdjkfdl",
-                "options":["dfjkdhf","dfhkdj","fdjhdf","fjhkjd"],
-                "correct_answer":0
+                "question":f"Question {index} about {request.subject}",
+                "options": [f"Option {index+1}" for index in range(1,request.number_options+1)],
+                "answer":"Option 1"
             }
-        ]
-    }
+        )
+    return {
+        "topic":request.subject,
+        "num_questions":request.number_quizzes,
+        "questions":questions
+        }
 @app.post("/summarize")
 def summarize(request:SummarizeRequest):
+    words = request.text.split()
     return {
-        "topic":f"{request.topic}",
-        "sumamry":"This is a summary"
+        "summary":[
+            "Normalement summary",
+            "The Real summary"[:request.max_bullets],
+            
+        ],
+        "word_count":len(words)
     }
 @app.post("/flashcard")
 def flashcard(request:FlashCardsRequest):
