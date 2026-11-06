@@ -130,4 +130,4 @@ def call_llm(user_message):
         "tokens_used" : tokens_used
     }
 if __name__ == "__main__":
-    call_llm("Explain to me statistics")
+    print(call_llm("Explain to me statistics"))
