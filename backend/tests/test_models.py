@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from app.routers import models as api_models
-from app.services import models as service_models
+from backend.app.routers import models as api_models
+from backend.app.services import models as service_models
 
 
 @pytest.mark.parametrize("models", [api_models, service_models])

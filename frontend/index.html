@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8fc">
+    <title>GMC AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Assistant menu">
+        <a class="brand" href="./" aria-label="GMC AI Assistant home">
+          <span class="brand-mark" aria-hidden="true">g</span>
+          <span>gmc<span class="brand-light">.ai</span></span>
+        </a>
+
+        <button class="new-chat-button" id="new-chat" type="button">
+          <span aria-hidden="true">+</span>
+          New conversation
+        </button>
+
+        <nav class="tool-nav sidebar-tools" aria-label="Assistant tools">
+          <button class="tool-tab is-active" type="button" data-view="chat" aria-current="page">
+            <span aria-hidden="true">✦</span> Chat
+          </button>
+          <button class="tool-tab" type="button" data-view="quiz">
+            <span aria-hidden="true">▦</span> Quiz
+          </button>
+          <button class="tool-tab" type="button" data-view="flashcards">
+            <span aria-hidden="true">▤</span> Flashcards
+          </button>
+          <button class="tool-tab" type="button" data-view="summarize">
+            <span aria-hidden="true">≡</span> Summarize
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span class="note-icon" aria-hidden="true">✦</span>
+          <p>Your study companion, ready whenever you are.</p>
+        </div>
+
+        <div class="sidebar-footer">
+          <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+          <span id="connection-status" role="status">Checking connection…</span>
+        </div>
+      </aside>
+
+      <section class="chat-panel" aria-label="AI assistant chat">
+        <header class="topbar">
+          <div class="mobile-brand">
+            <span class="brand-mark" aria-hidden="true">g</span>
+            <span>gmc<span class="brand-light">.ai</span></span>
+          </div>
+          <div class="assistant-label">
+            <span class="assistant-avatar" aria-hidden="true">✦</span>
+            <div>
+              <strong>AI Assistant</strong>
+              <span class="assistant-caption">Here to help you learn</span>
+            </div>
+          </div>
+          <button class="mobile-new-chat" id="mobile-new-chat" type="button" aria-label="New conversation">+ New</button>
+          <span class="topbar-badge">STUDY SPACE</span>
+        </header>
+
+        <nav class="tool-nav mobile-tools" aria-label="Assistant tools">
+          <button class="tool-tab is-active" type="button" data-view="chat" aria-current="page">
+            <span aria-hidden="true">✦</span> Chat
+          </button>
+          <button class="tool-tab" type="button" data-view="quiz">
+            <span aria-hidden="true">▦</span> Quiz
+          </button>
+          <button class="tool-tab" type="button" data-view="flashcards">
+            <span aria-hidden="true">▤</span> Cards
+          </button>
+          <button class="tool-tab" type="button" data-view="summarize">
+            <span aria-hidden="true">≡</span> Summary
+          </button>
+        </nav>
+
+        <section class="chat-view" id="chat-view" aria-label="AI assistant chat">
+          <div class="conversation" id="conversation" aria-live="polite" aria-relevant="additions text">
+            <div class="welcome" id="welcome">
+              <div class="welcome-icon" aria-hidden="true">✦</div>
+              <p class="eyebrow">YOUR PERSONAL STUDY COMPANION</p>
+              <h1>What would you like<br>to <span>learn today?</span></h1>
+              <p class="welcome-copy">Ask a question, explore a new idea, or get help understanding something tricky.</p>
+
+              <div class="suggestions" aria-label="Try asking">
+                <button type="button" class="suggestion" data-prompt="Explain photosynthesis in simple terms">
+                  <span aria-hidden="true">↗</span> Explain a topic simply
+                </button>
+                <button type="button" class="suggestion" data-prompt="Help me make a study plan for this week">
+                  <span aria-hidden="true">▦</span> Make a study plan
+                </button>
+                <button type="button" class="suggestion" data-prompt="Give me a quick quiz on world history">
+                  <span aria-hidden="true">✎</span> Quiz me on a subject
+                </button>
+              </div>
+            </div>
+            <div class="messages" id="messages"></div>
+          </div>
+
+          <footer class="composer-area">
+            <form class="composer" id="chat-form">
+              <label class="sr-only" for="message-input">Message the AI assistant</label>
+              <textarea
+                id="message-input"
+                name="message"
+                rows="1"
+                maxlength="2000"
+                placeholder="Ask anything…"
+                required
+              ></textarea>
+              <div class="composer-actions">
+                <span class="input-hint">Shift + Enter for a new line</span>
+                <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+                  <span aria-hidden="true">↑</span>
+                </button>
+              </div>
+            </form>
+            <p class="disclaimer">AI can make mistakes. Check important information with a trusted source.</p>
+          </footer>
+        </section>
+
+        <section class="tool-view" id="quiz-view" aria-labelledby="quiz-title" hidden>
+          <header class="tool-heading">
+            <span class="tool-icon" aria-hidden="true">▦</span>
+            <div>
+              <p class="eyebrow">PRACTICE & LEARN</p>
+              <h1 id="quiz-title">Build a quiz</h1>
+              <p>Generate multiple-choice questions to test what you know.</p>
+            </div>
+          </header>
+          <form class="tool-form" id="quiz-form">
+            <label class="field-label" for="quiz-subject">Subject or topic</label>
+            <input id="quiz-subject" name="subject" type="text" minlength="2" maxlength="100" placeholder="e.g. The solar system" required>
+            <div class="field-grid">
+              <div>
+                <label class="field-label" for="quiz-count">Number of questions</label>
+                <input id="quiz-count" name="number_quizzes" type="number" min="3" max="10" value="3" required>
+              </div>
+              <div>
+                <label class="field-label" for="quiz-options">Options per question</label>
+                <input id="quiz-options" name="number_options" type="number" min="4" max="6" value="4" required>
+              </div>
+            </div>
+            <button class="primary-button" type="submit">Generate quiz <span aria-hidden="true">→</span></button>
+            <p class="tool-error" id="quiz-error" role="alert" hidden></p>
+          </form>
+          <div class="tool-results" id="quiz-results" aria-live="polite"></div>
+        </section>
+
+        <section class="tool-view" id="flashcards-view" aria-labelledby="flashcards-title" hidden>
+          <header class="tool-heading">
+            <span class="tool-icon" aria-hidden="true">▤</span>
+            <div>
+              <p class="eyebrow">REMEMBER MORE</p>
+              <h1 id="flashcards-title">Make flashcards</h1>
+              <p>Generate a set of cards and reveal each answer as you study.</p>
+            </div>
+          </header>
+          <form class="tool-form" id="flashcards-form">
+            <label class="field-label" for="flashcards-topic">Topic</label>
+            <input id="flashcards-topic" name="topic" type="text" minlength="3" maxlength="10" placeholder="e.g. Biology" required>
+            <p class="field-help">Topic must be 3–10 characters to match the current API limit.</p>
+            <label class="field-label" for="flashcards-count">Number of cards</label>
+            <input id="flashcards-count" name="number_flashcards" type="number" min="7" max="18" value="7" required>
+            <button class="primary-button" type="submit">Create flashcards <span aria-hidden="true">→</span></button>
+            <p class="tool-error" id="flashcards-error" role="alert" hidden></p>
+          </form>
+          <div class="tool-results" id="flashcards-results" aria-live="polite"></div>
+        </section>
+
+        <section class="tool-view" id="summarize-view" aria-labelledby="summarize-title" hidden>
+          <header class="tool-heading">
+            <span class="tool-icon" aria-hidden="true">≡</span>
+            <div>
+              <p class="eyebrow">GET THE KEY IDEAS</p>
+              <h1 id="summarize-title">Summarize text</h1>
+              <p>Paste your notes or reading to turn it into a concise summary.</p>
+            </div>
+          </header>
+          <form class="tool-form" id="summarize-form">
+            <label class="field-label" for="summary-text">Text to summarize</label>
+            <textarea id="summary-text" name="text" minlength="20" maxlength="5000" rows="8" placeholder="Paste at least 20 characters of text…" required></textarea>
+            <p class="field-help">20–5,000 characters.</p>
+            <label class="field-label" for="summary-bullets">Maximum bullet points</label>
+            <input id="summary-bullets" name="max_bullets" type="number" min="3" max="10" value="3" required>
+            <button class="primary-button" type="submit">Summarize text <span aria-hidden="true">→</span></button>
+            <p class="tool-error" id="summarize-error" role="alert" hidden></p>
+          </form>
+          <div class="tool-results" id="summarize-results" aria-live="polite"></div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

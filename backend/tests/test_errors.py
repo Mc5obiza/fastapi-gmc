@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
-from app.services.ai import AIServiceError
-from app.services.errors import ai_error_http
+from backend.app.services.ai import AIServiceError
+from backend.app.services.errors import ai_error_http
 
 
 @pytest.mark.parametrize(

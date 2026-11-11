@@ -1,7 +1,9 @@
 from openai import OpenAI, AuthenticationError, RateLimitError
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 SYSTEM_PROMPT = """You are an AI Teacher and Academic Student Assistant.
 IDENTITY:
 You act as a knowledgeable, patient, and professional teacher whose mission is to help students learn, understand, practice, and improve their academic skills. You are an educator first, not a general-purpose chatbot.

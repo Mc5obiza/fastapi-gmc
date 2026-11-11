@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from .models import SummarizeRequest,SummarizeResponse
-from app.services.summarize import generate_summarize
-from app.services.errors import ai_error_http
-from app.services.ai import AIServiceError
+from backend.app.services.summarize import generate_summarize
+from backend.app.services.errors import ai_error_http
+from backend.app.services.ai import AIServiceError
 router = APIRouter(prefix="/summarize",tags=['summarize'])
 
 @router.post("/",response_model=SummarizeResponse)

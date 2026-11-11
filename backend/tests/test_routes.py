@@ -3,9 +3,9 @@ from unittest.mock import patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
-from app.services.ai import AIServiceError
-from app.services.models import (
+from backend.app.main import app
+from backend.app.services.ai import AIServiceError
+from backend.app.services.models import (
     FlashCard,
     FlashCardsResponse,
     Quizz,

@@ -1,7 +1,7 @@
 from fastapi import HTTPException, APIRouter
 from .models import ChatResponse,ChatRequest
-from app.services.ai import call_llm,AIServiceError
-from app.services.errors import ai_error_http
+from backend.app.services.ai import call_llm,AIServiceError
+from backend.app.services.errors import ai_error_http
 router = APIRouter(prefix="/chat",
                    tags = ["chat"])
 @router.post("/",response_model=ChatResponse)

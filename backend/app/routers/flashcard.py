@@ -1,8 +1,8 @@
 from fastapi import APIRouter,HTTPException
 from .models import FlashCardsRequest,FlashCardsResponse
-from app.services.flashcard import generate_flashcard
-from app.services.ai import AIServiceError
-from app.services.errors import ai_error_http
+from backend.app.services.flashcard import generate_flashcard
+from backend.app.services.ai import AIServiceError
+from backend.app.services.errors import ai_error_http
 router = APIRouter(prefix="/flashcard",tags=["flashcards"])
 
 @router.post("/",response_model=FlashCardsResponse)

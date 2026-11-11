@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from app.services.ai import call_llm
+from backend.app.services.ai import call_llm
 
 
 def supervise_answer(question, expected_answer, candidate_answer):

@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app
+from backend.app.main import app
 
 @pytest.mark.asyncio
 async def test_health_endpoints_returns_ok():

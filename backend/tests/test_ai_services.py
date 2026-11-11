@@ -3,9 +3,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from app.services import ai, flashcard, quizz, summarize
-from app.services.ai import AIServiceError
-from app.services.models import FlashCardsResponse, QuizzResponse, SummarizeResponse
+from backend.app.services import ai
+from backend.app.services.ai import AIServiceError
+from backend.app.services.models import FlashCardsResponse, QuizzResponse, SummarizeResponse
+from backend.app.services import flashcard, quizz, summarize
 
 
 def parsed_client(parsed):
