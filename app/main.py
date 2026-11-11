@@ -1,7 +1,8 @@
 from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel,Field
 from datetime import datetime, timezone
-from routers import chat,quizz,summarize,flashcard
+from app.routers import chat, flashcard, quizz
+from app.routers import summarize
 app = FastAPI()
 app.include_router(chat.router)
 app.include_router(quizz.router)

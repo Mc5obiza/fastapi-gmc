@@ -100,6 +100,7 @@ class AIServiceError(Exception):
     def __init__(self,kind,message):
         super().__init__(message)
         self.kind = kind
+        self.message = message
 def get_client():
     api_key = os.getenv("OPEN_ROUTER_KEY")
     if not api_key:
