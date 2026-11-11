@@ -1,20 +1,16 @@
 from fastapi import HTTPException,APIRouter
-from .models import Quizz,QuizzResponse,QuizzRequest
-
+from .models import QuizzResponse,QuizzRequest
+from services.ai import AIServiceError
+from services.errors import ai_error_http
+from services.quizz import generate_quizz
 router = APIRouter(prefix="/quizz",tags=["quizz"])
 @router.post('/')
 def quizz(request:QuizzRequest):
-    questions = []
-    for index in range(1,request.number_quizzes+1):
-        questions.append(
-        Quizz(
-                question=f"Question {index} about {request.subject}",
-                options= [f"Option {index+1}" for index in range(1,request.number_options+1)],
-                correct="Option 1"
-        )
-        )
-    return QuizzResponse(
-        topic=request.subject,
-        nb_questions=request.number_quizzes,
-        quizz=questions
-    )
+    try:
+        subject = request.subject.strip()
+        number_questions = request.number_quizzes
+        number_options = request.number_options
+        response = generate_quizz(subject,number_questions,number_options)
+    except AIServiceError as error:
+        raise ai_error_http(error)
+    return response

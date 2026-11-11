@@ -1,7 +1,6 @@
-from dotenv import load_dotenv
 from openai import OpenAI,AuthenticationError,RateLimitError
-from ai import AIServiceError,get_client
-from models import QuizzResponse
+from .ai import AIServiceError,get_client
+from .models import QuizzResponse
 
 def generate_quizz(subject,number_quizzes,number_options):
     try:

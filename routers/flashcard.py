@@ -1,17 +1,15 @@
 from fastapi import APIRouter,HTTPException
-from .models import FlashCard,FlashCardsRequest,FlashCardsResponse
-
+from .models import FlashCardsRequest,FlashCardsResponse
+from services.flashcard import generate_flashcard
+from services.ai import AIServiceError
+from services.errors import ai_error_http
 router = APIRouter(prefix="/flashcard",tags=["flashcards"])
 
 @router.post("/",response_model=FlashCardsResponse)
 def flashcard(request:FlashCardsRequest):
-    clean_topic = request.topic.strip()
-    if not clean_topic:
-        raise HTTPException(status_code=400,
-                            detail="Topic can not be empty")
-    flashcards = []
-    for i in range(1,request.number_flashcards+1):
-        flashcards.append(FlashCard(front=f"FlashCard {i}:dlkfhjdk",back=f"FlashCard {i}:djfgjdgf"))
-    return FlashCardsResponse(
-        topic=request.topic,
-        flashcards=flashcards)
+    try:
+        clean_topic = request.topic.strip()
+        response = generate_flashcard(request.topic,request.number_flashcards)
+    except AIServiceError as error:
+        raise ai_error_http(error)
+    return response

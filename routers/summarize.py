@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from .models import SummarizeRequest,SummarizeResponse
-
+from services.summarize import generate_summarize
+from services.errors import ai_error_http
+from services.ai import AIServiceError
 router = APIRouter(prefix="/summarize",tags=['summarize'])
 
 @router.post("/",response_model=SummarizeResponse)
 def summarize(request:SummarizeRequest):
-    words = request.text.split()
-    return SummarizeResponse(
-        summary=[
-            "Normalement summary",
-            "The Real summary"[:request.max_bullets],
-            
-        ],
-        word_count=len(words)
-    )
+    try:
+        max_bulltets = request.max_bullets
+        text = request.text.strip()
+        response = generate_summarize(text,max_bulltets)
+    except AIServiceError as error:
+        raise ai_error_http(error)
+    return response
