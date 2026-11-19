@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from database import SessionLocal
-import models
+from backend.app.services.db.database import SessionLocal
+from backend.app.services.db import models
 
 def add_user(db:Session, email,password_hash):
     user = models.User(email=email,password_hash=password_hash)
@@ -34,7 +34,7 @@ def add_message(db:Session, user_id, role,content,conversation_id = None,tokens_
     db.add(message)
     db.commit()
     db.refresh(message)
-    return message.id
+    return message.id,conversation.id
 def get_messages(db:Session, conversation_id, user_id):
     return (
         db.query(models.Message).join(models.Conversation).filter(

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from backend.app.routers import quizz
 from backend.app.routers import summarize
-from backend.app.routers import chat, flashcard
+from backend.app.routers import chat, flashcard , conversation
 from .services.db import models
 from .services.db.database import Base, engine,get_db
 
@@ -23,6 +23,7 @@ app.include_router(chat.router)
 app.include_router(quizz.router)
 app.include_router(summarize.router)
 app.include_router(flashcard.router)
+app.include_router(conversation.router)
 Base.metadata.create_all(bind=engine)
 # Created an endpoint that runs root function
 @app.get("/")
