@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, JSON, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -24,3 +24,28 @@ class Conversation(Base):
     messages = relationship("Message",back_populates='conversation',order_by="Message.id")
     user = relationship("User",back_populates="conversations")
 
+class Message(Base):
+    __tablename__ = "messages"
+    id = Column(Integer,primary_key=True,index=True,autoincrement=True)
+    conversation_id = Column(Integer,ForeignKey("conversations.id"),nullable=False,index = True)
+    role = Column(Text,nullable=False)
+    content = Column(Text,nullable=False)
+    tokens_used = Column(Integer,default=0)
+    created_at = Column(DateTime,default=utc_now)
+    conversation = relationship('Conversation',back_populates="messages")
+class Quizz(Base):
+    __tabmename__ = "quizzes"
+    id = Column(Integer,primary_key=True,index=True,autoincrement=True)
+    user_id = Column(Integer,ForeignKey("users.id"),nullable=False,index=True)
+    topic = Column(Text,nullable=False)
+    created_at = Column(DateTime,default=utc_now)
+    questions = relationship('QuizzQuestion',back_populates="quizz")
+    user = relationship('User',back_populates="quizz")
+class QuizzQuestion(Base):
+    __tablename__ = "quizz_questions"
+    id = Column(Integer,primary_key=True,index=True,autoincrement=True)
+    quizz_id = Column(Integer,ForeignKey("quizzes.id"),nullable=False,index=True)
+    question = Column(Text,nullable=False)
+    options = Column(JSON,nullable=False)
+    correct_index = Column(Integer,nullable=False)
+    quizz = relationship("Quizz",back_populates="questions")
