@@ -1,6 +1,6 @@
 from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
-from .models import FlashCardsResponse
+from backend.app.routers.models import FlashCardsResponse
 
 def generate_flashcard(topics,number_flashcards):
     try:

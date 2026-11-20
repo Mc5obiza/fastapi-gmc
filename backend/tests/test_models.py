@@ -2,18 +2,15 @@ import pytest
 from pydantic import ValidationError
 
 from backend.app.routers import models as api_models
-from backend.app.services import models as service_models
 
 
-@pytest.mark.parametrize("models", [api_models, service_models])
-def test_request_models_accept_boundary_values(models):
-    models.ChatRequest(message="x" * 2000)
-    models.QuizzRequest(subject="xy" * 50, number_quizzes=10, number_options=6)
-    models.SummarizeRequest(text="x" * 5000, max_bullets=10)
-    models.FlashCardsRequest(topic="x" * 10, number_flashcards=18)
+def test_request_models_accept_boundary_values():
+    api_models.ChatRequest(message="x" * 2000)
+    api_models.QuizzRequest(subject="xy" * 50, number_quizzes=10, number_options=6)
+    api_models.SummarizeRequest(text="x" * 5000, max_bullets=10)
+    api_models.FlashCardsRequest(topic="x" * 10, number_flashcards=18)
 
 
-@pytest.mark.parametrize("models", [api_models, service_models])
 @pytest.mark.parametrize(
     ("model_name", "data"),
     [
@@ -36,32 +33,31 @@ def test_request_models_accept_boundary_values(models):
         ("FlashCardsRequest", {"topic": "math", "number_flashcards": 19}),
     ],
 )
-def test_request_models_reject_invalid_values(models, model_name, data):
+def test_request_models_reject_invalid_values(model_name, data):
     with pytest.raises(ValidationError):
-        getattr(models, model_name)(**data)
+        getattr(api_models, model_name)(**data)
 
 
-@pytest.mark.parametrize("models", [api_models, service_models])
-def test_response_models_validate_generated_data(models):
-    chat = models.ChatResponse(answer="Learn!", model="test-model", tokens_used=12)
-    quiz = models.QuizzResponse(
+def test_response_models_validate_generated_data():
+    chat = api_models.ChatResponse(answer="Learn!", model="test-model", tokens_used=12)
+    quiz = api_models.QuizzResponse(
         topic="math",
         nb_questions=1,
         quizz=[
-            models.Quizz(
+            api_models.Quizz(
                 question="What is 1 + 1?",
                 options=["1", "2"],
-                correct="2",
+                correct=1,
             )
         ],
     )
-    summary = models.SummarizeResponse(summary=["First point"], word_count=3)
-    flashcards = models.FlashCardsResponse(
+    summary = api_models.SummarizeResponse(summary=["First point"], word_count=3)
+    flashcards = api_models.FlashCardsResponse(
         topic="math",
-        flashcards=[models.FlashCard(front="Question", back="Answer")],
+        flashcards=[api_models.FlashCard(front="Question", back="Answer")],
     )
 
     assert chat.tokens_used == 12
-    assert quiz.quizz[0].correct in quiz.quizz[0].options
+    assert quiz.quizz[0].correct == 1
     assert summary.summary == ["First point"]
     assert flashcards.flashcards[0].back == "Answer"

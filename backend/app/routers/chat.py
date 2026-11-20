@@ -30,5 +30,6 @@ def chat(request:ChatRequest,db:Session = Depends(get_db)):
     return ChatResponse(
         answer = result["answer"],
         model = result["model"],
-        tokens_used = result["tokens_used"]
+        tokens_used = result["tokens_used"],
+        conversation_id = conversation_id,
     )

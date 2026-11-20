@@ -1,4 +1,4 @@
-from .models import SummarizeResponse
+from backend.app.routers.models import SummarizeResponse
 from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
 

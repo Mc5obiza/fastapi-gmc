@@ -36,6 +36,12 @@
           </button>
         </nav>
 
+        <section class="sidebar-history" aria-labelledby="conversation-history-title">
+          <h2 id="conversation-history-title">Recent conversations</h2>
+          <p class="tool-error" data-conversation-error role="alert" hidden></p>
+          <ul class="saved-list" data-conversation-list aria-live="polite"></ul>
+        </section>
+
         <div class="sidebar-note">
           <span class="note-icon" aria-hidden="true">✦</span>
           <p>Your study companion, ready whenever you are.</p>
@@ -60,6 +66,13 @@
               <span class="assistant-caption">Here to help you learn</span>
             </div>
           </div>
+          <details class="mobile-history">
+            <summary>History</summary>
+            <div class="mobile-history-menu">
+              <p class="tool-error" data-conversation-error role="alert" hidden></p>
+              <ul class="saved-list" data-conversation-list aria-live="polite"></ul>
+            </div>
+          </details>
           <button class="mobile-new-chat" id="mobile-new-chat" type="button" aria-label="New conversation">+ New</button>
           <span class="topbar-badge">STUDY SPACE</span>
         </header>
@@ -150,6 +163,11 @@
             <p class="tool-error" id="quiz-error" role="alert" hidden></p>
           </form>
           <div class="tool-results" id="quiz-results" aria-live="polite"></div>
+          <section class="saved-section" aria-labelledby="saved-quizzes-title">
+            <h2 id="saved-quizzes-title">Saved quizzes</h2>
+            <p class="tool-error" id="quiz-library-error" role="alert" hidden></p>
+            <ul class="saved-list" id="saved-quizzes" aria-live="polite"></ul>
+          </section>
         </section>
 
         <section class="tool-view" id="flashcards-view" aria-labelledby="flashcards-title" hidden>
@@ -171,6 +189,11 @@
             <p class="tool-error" id="flashcards-error" role="alert" hidden></p>
           </form>
           <div class="tool-results" id="flashcards-results" aria-live="polite"></div>
+          <section class="saved-section" aria-labelledby="saved-decks-title">
+            <h2 id="saved-decks-title">Saved decks</h2>
+            <p class="tool-error" id="deck-library-error" role="alert" hidden></p>
+            <ul class="saved-list" id="saved-decks" aria-live="polite"></ul>
+          </section>
         </section>
 
         <section class="tool-view" id="summarize-view" aria-labelledby="summarize-title" hidden>

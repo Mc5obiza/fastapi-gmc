@@ -5,7 +5,7 @@ import pytest
 
 from backend.app.services import ai
 from backend.app.services.ai import AIServiceError
-from backend.app.services.models import FlashCardsResponse, QuizzResponse, SummarizeResponse
+from backend.app.routers.models import FlashCardsResponse, QuizzResponse, SummarizeResponse
 from backend.app.services import flashcard, quizz, summarize
 
 
@@ -17,7 +17,7 @@ def parsed_client(parsed):
     return client
 
 
-@patch("app.services.ai.OpenAI")
+@patch("backend.app.services.ai.OpenAI")
 def test_get_client_requires_api_key(openai):
     with patch.dict("os.environ", {}, clear=True):
         with pytest.raises(AIServiceError) as error:
@@ -27,7 +27,7 @@ def test_get_client_requires_api_key(openai):
     openai.assert_not_called()
 
 
-@patch("app.services.ai.OpenAI")
+@patch("backend.app.services.ai.OpenAI")
 def test_get_client_uses_openrouter_configuration(openai):
     openai.return_value = object()
 
@@ -48,8 +48,8 @@ def test_call_llm_builds_request_and_handles_optional_values():
     )
     client = Mock()
     client.chat.completions.create.return_value = response
-    with patch("app.services.ai.get_client", return_value=client):
-        result = ai.call_llm("Explain algebra")
+    with patch("backend.app.services.ai.get_client", return_value=client):
+        result = ai.call_llm([{"role": "user", "content": "Explain algebra"}])
 
     assert result == {"answer": "", "model": "No model", "tokens_used": 0}
     call = client.chat.completions.create.call_args.kwargs
@@ -68,8 +68,8 @@ def test_call_llm_returns_answer_and_token_count():
     )
     client = Mock()
     client.chat.completions.create.return_value = response
-    with patch("app.services.ai.get_client", return_value=client):
-        result = ai.call_llm("Question")
+    with patch("backend.app.services.ai.get_client", return_value=client):
+        result = ai.call_llm([{"role": "user", "content": "Question"}])
 
     assert result == {
         "answer": "Answer",
@@ -123,14 +123,14 @@ def test_structured_services_return_parsed_response(
     [
         (
             ai,
-            lambda: ai.call_llm("math"),
+            lambda: ai.call_llm([{"role": "user", "content": "math"}]),
             "AuthenticationError",
             "auth",
             "Invalid API key",
         ),
         (
             ai,
-            lambda: ai.call_llm("math"),
+            lambda: ai.call_llm([{"role": "user", "content": "math"}]),
             "RateLimitError",
             "rate_limit",
             "Rate limited by the provider",
@@ -242,9 +242,9 @@ def test_structured_services_translate_unexpected_errors(
 def test_chat_service_translates_unexpected_errors():
     client = Mock()
     client.chat.completions.create.side_effect = RuntimeError("provider unavailable")
-    with patch("app.services.ai.get_client", return_value=client):
+    with patch("backend.app.services.ai.get_client", return_value=client):
         with pytest.raises(AIServiceError) as error:
-            ai.call_llm("Question")
+            ai.call_llm([{"role": "user", "content": "Question"}])
 
     assert error.value.kind == "Unkown"
     assert error.value.message == "provider unavailable"

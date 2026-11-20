@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -5,7 +6,7 @@ from httpx import ASGITransport, AsyncClient
 
 from backend.app.main import app
 from backend.app.services.ai import AIServiceError
-from backend.app.services.models import (
+from backend.app.routers.models import (
     FlashCard,
     FlashCardsResponse,
     Quizz,
@@ -39,17 +40,23 @@ async def test_public_information_endpoints():
 @pytest.mark.asyncio
 async def test_chat_strips_message_and_returns_response():
     result = {"answer": "The answer", "model": "test-model", "tokens_used": 5}
-    with patch("app.routers.chat.call_llm", return_value=result) as call_llm:
+    with (
+        patch("backend.app.routers.chat.call_llm", return_value=result) as call_llm,
+        patch(
+            "backend.app.routers.chat.add_message",
+            side_effect=[(1, 42), (2, 42)],
+        ),
+    ):
         response = await request("post", "/chat/", json={"message": "  explain math  "})
 
     assert response.status_code == 200
-    assert response.json() == result
-    call_llm.assert_called_once_with("explain math")
+    assert response.json() == {**result, "conversation_id": 42}
+    call_llm.assert_called_once_with([{"role": "user", "content": "explain math"}])
 
 
 @pytest.mark.asyncio
 async def test_chat_rejects_whitespace_message_without_calling_provider():
-    with patch("app.routers.chat.call_llm") as call_llm:
+    with patch("backend.app.routers.chat.call_llm") as call_llm:
         response = await request("post", "/chat/", json={"message": "   "})
 
     assert response.status_code == 400
@@ -63,10 +70,10 @@ async def test_quiz_route_trims_subject_and_forwards_options():
         topic="math",
         nb_questions=3,
         quizz=[
-            Quizz(question="Q", options=["A", "B"], correct="A")
+            Quizz(question="Q", options=["A", "B"], correct=0)
         ],
     )
-    with patch("app.routers.quizz.generate_quizz", return_value=result) as generate:
+    with patch("backend.app.routers.quizz.generate_quizz", return_value=result) as generate:
         response = await request(
             "post",
             "/quizz/",
@@ -79,10 +86,122 @@ async def test_quiz_route_trims_subject_and_forwards_options():
 
 
 @pytest.mark.asyncio
+async def test_get_quiz_by_id_returns_quiz_and_questions():
+    quiz = SimpleNamespace(id=12, topic="math")
+    questions = [
+        SimpleNamespace(
+            question="What is 2 + 2?",
+            options=["3", "4", "5"],
+            correct_index=1,
+        )
+    ]
+    with (
+        patch("backend.app.routers.quizz.crud.get_quizz", return_value=quiz),
+        patch("backend.app.routers.quizz.crud.get_questions", return_value=questions),
+    ):
+        response = await request("get", "/quizz/12")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": 12,
+        "topic": "math",
+        "nb_questions": 1,
+        "quizz": [
+            {
+                "question": "What is 2 + 2?",
+                "options": ["3", "4", "5"],
+                "correct": 1,
+            }
+        ],
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_quiz_by_id_returns_404_for_missing_or_unowned_quiz():
+    with patch("backend.app.routers.quizz.crud.get_quizz", return_value=None):
+        response = await request("get", "/quizz/999999")
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_all_quizzes_returns_current_users_quizzes_with_questions():
+    quiz = SimpleNamespace(
+        id=12,
+        topic="math",
+        questions=[
+            SimpleNamespace(
+                question="What is 2 + 2?",
+                options=["3", "4"],
+                correct_index=1,
+            )
+        ],
+    )
+    with (
+        patch("backend.app.routers.quizz.crud.get_all_quizzes", return_value=[quiz]),
+        patch(
+            "backend.app.routers.quizz.crud.get_questions",
+            return_value=quiz.questions,
+        ),
+    ):
+        response = await request("get", "/quizz/")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 12,
+            "topic": "math",
+            "nb_questions": 1,
+            "quizz": [
+                {
+                    "question": "What is 2 + 2?",
+                    "options": ["3", "4"],
+                    "correct": 1,
+                }
+            ],
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_all_flashcard_decks_returns_ids_and_titles():
+    decks = [SimpleNamespace(id=3, title="Biology")]
+    with patch("backend.app.routers.flashcard.get_all_flashcard_decks", return_value=decks):
+        response = await request("get", "/flashcard/")
+
+    assert response.status_code == 200
+    assert response.json() == [{"id": 3, "title": "Biology"}]
+
+
+@pytest.mark.asyncio
+async def test_get_all_conversations_returns_conversation_summaries():
+    conversations = [
+        SimpleNamespace(
+            id=5,
+            title="Study session",
+            created_at="2026-11-20T10:00:00",
+            updated_at="2026-11-20T10:30:00",
+        )
+    ]
+    with patch("backend.app.routers.conversation.crud.get_all_cnv", return_value=conversations):
+        response = await request("get", "/conversations/")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 5,
+            "title": "Study session",
+            "created_at": "2026-11-20T10:00:00",
+            "updated_at": "2026-11-20T10:30:00",
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_summarize_route_trims_text_and_forwards_bullet_limit():
     result = SummarizeResponse(summary=["Point"], word_count=1)
     with patch(
-        "app.routers.summarize.generate_summarize", return_value=result
+        "backend.app.routers.summarize.generate_summarize", return_value=result
     ) as generate:
         response = await request(
             "post",
@@ -102,7 +221,7 @@ async def test_flashcard_route_returns_generated_cards():
         flashcards=[FlashCard(front="What is 1 + 1?", back="2")],
     )
     with patch(
-        "app.routers.flashcard.generate_flashcard", return_value=result
+        "backend.app.routers.flashcard.generate_flashcard", return_value=result
     ) as generate:
         response = await request(
             "post",
@@ -119,20 +238,20 @@ async def test_flashcard_route_returns_generated_cards():
 @pytest.mark.parametrize(
     ("path", "patch_target", "payload"),
     [
-        ("/chat/", "app.routers.chat.call_llm", {"message": "Explain math"}),
+        ("/chat/", "backend.app.routers.chat.call_llm", {"message": "Explain math"}),
         (
             "/quizz/",
-            "app.routers.quizz.generate_quizz",
+            "backend.app.routers.quizz.generate_quizz",
             {"subject": "math", "number_quizzes": 3, "number_options": 4},
         ),
         (
             "/summarize/",
-            "app.routers.summarize.generate_summarize",
+            "backend.app.routers.summarize.generate_summarize",
             {"text": "This text is long enough to summarize.", "max_bullets": 3},
         ),
         (
             "/flashcard/",
-            "app.routers.flashcard.generate_flashcard",
+            "backend.app.routers.flashcard.generate_flashcard",
             {"topic": "math", "number_flashcards": 7},
         ),
     ],

@@ -15,6 +15,8 @@ const toolViews = {
   flashcards: document.querySelector("#flashcards-view"),
   summarize: document.querySelector("#summarize-view"),
 };
+let currentConversationId = null;
+let conversationLoadVersion = 0;
 
 function setConnectionStatus(online) {
   connectionStatus.textContent = online ? "Assistant is online" : "Can't reach the assistant";
@@ -92,13 +94,121 @@ function getErrorMessage(body, status) {
   return `The request failed (HTTP ${status}). Please try again.`;
 }
 
+async function apiRequest(path, { method = "GET", body } = {}) {
+  const options = { method };
+  if (body !== undefined) {
+    options.headers = { "Content-Type": "application/json" };
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const responseBody = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(getErrorMessage(responseBody, response.status));
+  }
+  return responseBody;
+}
+
 async function checkHealth() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
-    setConnectionStatus(response.ok);
+    await apiRequest("/health");
+    setConnectionStatus(true);
   } catch (error) {
     setConnectionStatus(false);
     console.error("Could not check the assistant API health.", error);
+  }
+}
+
+function showHistoryError(message) {
+  document.querySelectorAll("[data-conversation-error]").forEach((element) => {
+    element.textContent = message;
+    element.hidden = !message;
+  });
+}
+
+async function loadConversations() {
+  try {
+    const body = await apiRequest("/conversations/");
+    if (!Array.isArray(body)) {
+      throw new Error("The assistant returned an unexpected conversation list.");
+    }
+
+    showHistoryError("");
+    document.querySelectorAll("[data-conversation-list]").forEach((list) => {
+      list.replaceChildren();
+      if (body.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "saved-list-empty";
+        empty.textContent = "No conversations yet";
+        list.append(empty);
+        return;
+      }
+
+      body.forEach((item) => {
+        if (!Number.isInteger(item?.id) || typeof item.title !== "string") {
+          return;
+        }
+        const entry = document.createElement("li");
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = item.title;
+        button.title = item.title;
+        button.classList.toggle("is-selected", item.id === currentConversationId);
+        button.addEventListener("click", () => openConversation(item.id));
+        entry.append(button);
+        list.append(entry);
+      });
+    });
+  } catch (error) {
+    showHistoryError(error instanceof TypeError
+      ? "Unable to load conversations. Check that the backend is running."
+      : error.message);
+    console.error("Could not load conversations.", error);
+  }
+}
+
+async function openConversation(conversationId) {
+  const requestVersion = ++conversationLoadVersion;
+  currentConversationId = conversationId;
+  showTool("chat");
+  welcome.hidden = true;
+  messages.replaceChildren();
+  const loadingMessage = appendMessage("assistant", "Loading conversation…");
+  document.querySelectorAll(".mobile-history").forEach((menu) => {
+    menu.open = false;
+  });
+
+  try {
+    const body = await apiRequest(`/conversations/${conversationId}/messages`);
+    if (!Array.isArray(body)) {
+      throw new Error("The assistant returned an unexpected conversation.");
+    }
+    if (requestVersion !== conversationLoadVersion) {
+      return;
+    }
+
+    loadingMessage.remove();
+    body.forEach((message) => {
+      if (
+        (message?.role === "user" || message?.role === "assistant")
+        && typeof message.content === "string"
+      ) {
+        appendMessage(message.role, message.content);
+      }
+    });
+    await loadConversations();
+  } catch (error) {
+    if (requestVersion !== conversationLoadVersion) {
+      return;
+    }
+    loadingMessage.remove();
+    appendMessage(
+      "assistant",
+      error instanceof TypeError
+        ? "Unable to load this conversation. Check that the backend is running."
+        : error.message,
+    );
+    console.error("Could not load conversation messages.", error);
   }
 }
 
@@ -111,25 +221,26 @@ async function sendMessage(message) {
   const typingMessage = showTypingIndicator();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/chat/`, {
+    const body = await apiRequest("/chat/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: {
+        message,
+        ...(currentConversationId === null ? {} : { conversation_id: currentConversationId }),
+      },
     });
-    const body = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      throw new Error(getErrorMessage(body, response.status));
-    }
 
     if (typeof body?.answer !== "string") {
       throw new Error("The assistant returned an unexpected response. Please try again.");
     }
 
+    if (Number.isInteger(body.conversation_id)) {
+      currentConversationId = body.conversation_id;
+    }
     typingMessage.remove();
     const tokenInfo = Number.isFinite(body.tokens_used) ? ` · ${body.tokens_used} tokens` : "";
     appendMessage("assistant", body.answer, `${body.model || "AI Assistant"}${tokenInfo}`);
     setConnectionStatus(true);
+    await loadConversations();
   } catch (error) {
     typingMessage.remove();
     const messageText = error instanceof TypeError
@@ -171,7 +282,15 @@ function appendResultsHeading(container, title, detail) {
   container.append(heading);
 }
 
-async function submitToolForm({ form, endpoint, errorElement, results, getPayload, render }) {
+async function submitToolForm({
+  form,
+  endpoint,
+  errorElement,
+  results,
+  getPayload,
+  render,
+  onSuccess,
+}) {
   const submitButton = form.querySelector('button[type="submit"]');
   errorElement.hidden = true;
   errorElement.textContent = "";
@@ -181,18 +300,16 @@ async function submitToolForm({ form, endpoint, errorElement, results, getPayloa
   form.setAttribute("aria-busy", "true");
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const body = await apiRequest(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(getPayload(new FormData(form))),
+      body: getPayload(new FormData(form)),
     });
-    const body = await response.json().catch(() => null);
-    if (!response.ok) {
-      throw new Error(getErrorMessage(body, response.status));
-    }
 
     results.replaceChildren();
     render(body, results);
+    if (onSuccess) {
+      await onSuccess();
+    }
   } catch (error) {
     results.replaceChildren();
     errorElement.textContent = error instanceof TypeError
@@ -255,7 +372,9 @@ function renderQuiz(body, container) {
   checkButton.addEventListener("click", () => {
     let score = 0;
     questionCards.forEach(({ card, question, feedback }) => {
-      const correctAnswer = String(question.correct ?? "");
+      const correctAnswer = Number.isInteger(question.correct)
+        ? String(question.options[question.correct] ?? "")
+        : String(question.correct ?? "");
       const options = card.querySelectorAll(".quiz-option");
       const selected = card.querySelector('input[type="radio"]:checked');
 
@@ -323,6 +442,131 @@ function renderSummary(body, container) {
   container.append(card);
 }
 
+function showLibraryError(errorElement, message) {
+  errorElement.textContent = message;
+  errorElement.hidden = !message;
+}
+
+async function loadSavedQuizzes() {
+  const list = document.querySelector("#saved-quizzes");
+  const errorElement = document.querySelector("#quiz-library-error");
+  try {
+    const body = await apiRequest("/quizz/");
+    if (!Array.isArray(body)) {
+      throw new Error("The assistant returned an unexpected quiz list.");
+    }
+
+    showLibraryError(errorElement, "");
+    list.replaceChildren();
+    if (body.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "saved-list-empty";
+      empty.textContent = "No saved quizzes yet";
+      list.append(empty);
+      return;
+    }
+
+    body.forEach((quiz) => {
+      if (!Number.isInteger(quiz?.id) || typeof quiz.topic !== "string") {
+        return;
+      }
+      const entry = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `${quiz.topic} · ${quiz.nb_questions} questions`;
+      button.addEventListener("click", () => openSavedQuiz(quiz.id));
+      entry.append(button);
+      list.append(entry);
+    });
+  } catch (error) {
+    showLibraryError(errorElement, error instanceof TypeError
+      ? "Unable to load saved quizzes. Check that the backend is running."
+      : error.message);
+    console.error("Could not load saved quizzes.", error);
+  }
+}
+
+async function openSavedQuiz(quizId) {
+  showTool("quiz");
+  const results = document.querySelector("#quiz-results");
+  const errorElement = document.querySelector("#quiz-error");
+  errorElement.hidden = true;
+  results.replaceChildren();
+  results.textContent = "Loading saved quiz…";
+  try {
+    const body = await apiRequest(`/quizz/${quizId}`);
+    results.replaceChildren();
+    renderQuiz(body, results);
+  } catch (error) {
+    results.replaceChildren();
+    errorElement.textContent = error instanceof TypeError
+      ? "Unable to load this quiz. Check that the backend is running."
+      : error.message;
+    errorElement.hidden = false;
+    console.error("Could not load saved quiz.", error);
+  }
+}
+
+async function loadSavedDecks() {
+  const list = document.querySelector("#saved-decks");
+  const errorElement = document.querySelector("#deck-library-error");
+  try {
+    const body = await apiRequest("/flashcard/");
+    if (!Array.isArray(body)) {
+      throw new Error("The assistant returned an unexpected deck list.");
+    }
+
+    showLibraryError(errorElement, "");
+    list.replaceChildren();
+    if (body.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "saved-list-empty";
+      empty.textContent = "No saved decks yet";
+      list.append(empty);
+      return;
+    }
+
+    body.forEach((deck) => {
+      if (!Number.isInteger(deck?.id) || typeof deck.title !== "string") {
+        return;
+      }
+      const entry = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = deck.title;
+      button.addEventListener("click", () => openSavedDeck(deck.id));
+      entry.append(button);
+      list.append(entry);
+    });
+  } catch (error) {
+    showLibraryError(errorElement, error instanceof TypeError
+      ? "Unable to load saved decks. Check that the backend is running."
+      : error.message);
+    console.error("Could not load saved decks.", error);
+  }
+}
+
+async function openSavedDeck(deckId) {
+  showTool("flashcards");
+  const results = document.querySelector("#flashcards-results");
+  const errorElement = document.querySelector("#flashcards-error");
+  errorElement.hidden = true;
+  results.replaceChildren();
+  results.textContent = "Loading saved deck…";
+  try {
+    const body = await apiRequest(`/flashcard/${deckId}`);
+    results.replaceChildren();
+    renderFlashcards(body, results);
+  } catch (error) {
+    results.replaceChildren();
+    errorElement.textContent = error instanceof TypeError
+      ? "Unable to load this deck. Check that the backend is running."
+      : error.message;
+    errorElement.hidden = false;
+    console.error("Could not load saved deck.", error);
+  }
+}
+
 chatForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = messageInput.value.trim();
@@ -357,12 +601,15 @@ toolTabs.forEach((tab) => {
 });
 
 newChatButtons.forEach((button) => button.addEventListener("click", () => {
+  currentConversationId = null;
+  conversationLoadVersion += 1;
   showTool("chat");
   messages.replaceChildren();
   welcome.hidden = false;
   messageInput.value = "";
   messageInput.style.height = "auto";
   messageInput.focus();
+  loadConversations();
 }));
 
 document.querySelector("#quiz-form").addEventListener("submit", (event) => {
@@ -379,6 +626,7 @@ document.querySelector("#quiz-form").addEventListener("submit", (event) => {
       number_options: Number(data.get("number_options")),
     }),
     render: renderQuiz,
+    onSuccess: loadSavedQuizzes,
   });
 });
 
@@ -395,6 +643,7 @@ document.querySelector("#flashcards-form").addEventListener("submit", (event) =>
       number_flashcards: Number(data.get("number_flashcards")),
     }),
     render: renderFlashcards,
+    onSuccess: loadSavedDecks,
   });
 });
 
@@ -415,3 +664,6 @@ document.querySelector("#summarize-form").addEventListener("submit", (event) => 
 });
 
 checkHealth();
+loadConversations();
+loadSavedQuizzes();
+loadSavedDecks();

@@ -16,6 +16,10 @@ def get_conversation(db:Session,conversation_id, user_id):
             models.Conversation.user_id == user_id
         ).first()
     )
+def get_all_cnv(db:Session,user_id):
+    return db.query(models.Conversation).filter(
+        models.Conversation.user_id == user_id
+    ).all()
 def add_message(db:Session, user_id, role,content,conversation_id = None,tokens_used = 0):
     if conversation_id is None:
         conversation = models.Conversation(user_id= user_id,title = "New conversation")
@@ -47,8 +51,14 @@ def get_messages(db:Session, conversation_id, user_id):
 def get_quizz(db:Session,quiz_id,user_id):
     return db.query(models.Quizz).filter(
         models.Quizz.id == quiz_id,
-        models.User.id == user_id
+        models.Quizz.user_id == user_id
     ).first()
+
+def get_all_quizzes(db: Session, user_id):
+    return db.query(models.Quizz).filter(
+        models.Quizz.user_id == user_id
+    ).all()
+
 def add_quiz(db:Session,user_id,topic):
     quiz = models.Quizz(
         user_id = user_id,
@@ -75,7 +85,7 @@ def get_questions(db:Session,quiz_id,user_id):
     if get_quizz(db,quiz_id,user_id) is None:
         raise LookupError("Quiz ID not found")
     return db.query(models.QuizzQuestion).filter(
-        models.Quizz.id == quiz_id
+        models.QuizzQuestion.quizz_id == quiz_id
     ).all()
 
 def get_flashcard_deck(db: Session, deck_id, user_id):
@@ -83,6 +93,11 @@ def get_flashcard_deck(db: Session, deck_id, user_id):
         models.FlashCardDeck.id == deck_id,
         models.FlashCardDeck.user_id == user_id
     ).first()
+
+def get_all_flashcard_decks(db: Session, user_id):
+    return db.query(models.FlashCardDeck).filter(
+        models.FlashCardDeck.user_id == user_id
+    ).all()
 
 def add_deck(db: Session, user_id, title):
     deck = models.FlashCardDeck(
@@ -122,6 +137,8 @@ def add_flashcard_deck(db: Session, user_id, title):
 
 def add_card(db: Session, user_id, deck_id, front, back):
     return add_flashcard(db, user_id, deck_id, front, back)
+def lookup_by_email(db:Session,email):
+    return db.query(models.User).filter(models.User.email == email).first()
 
 if __name__ == "__main__":
     print(add_user(SessionLocal(),"ex@example.com","123456"))

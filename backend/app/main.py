@@ -11,7 +11,7 @@ from backend.app.routers import summarize
 from backend.app.routers import chat, flashcard , conversation
 from .services.db import models
 from .services.db.database import Base, engine,get_db
-
+from backend.app.routers import auth
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -24,6 +24,7 @@ app.include_router(quizz.router)
 app.include_router(summarize.router)
 app.include_router(flashcard.router)
 app.include_router(conversation.router)
+app.include_router(auth.router)
 Base.metadata.create_all(bind=engine)
 # Created an endpoint that runs root function
 @app.get("/")
