@@ -108,15 +108,13 @@ def get_client():
     if not api_key:
         raise AIServiceError(kind="api_key",message="You don t have an API KEY")
     return OpenAI(api_key=api_key,base_url="https://openrouter.ai/api/v1")
-def call_llm(user_message):
+def call_llm(history):
     client= get_client()
     try:
+        messages = [{"role":"system","content":SYSTEM_PROMPT}] + history
         response = client.chat.completions.create(
                 model = "openrouter/free",
-                messages = [
-                    {"role":"system","content":SYSTEM_PROMPT},
-                    {"role":"user","content":user_message}
-                ],
+                messages = messages,
                 temperature=0.7,
                 max_tokens=700   )
     except AuthenticationError as error:

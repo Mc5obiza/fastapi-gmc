@@ -4,7 +4,7 @@ from backend.app.services.ai import AIServiceError
 from backend.app.services.errors import ai_error_http
 from backend.app.services.quizz import generate_quizz
 router = APIRouter(prefix="/quizz",tags=["quizz"])
-@router.post('/')
+@router.post('/',response_model=QuizzResponse)
 def quizz(request:QuizzRequest):
     try:
         subject = request.subject.strip()
