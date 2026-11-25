@@ -1,4 +1,9 @@
 const API_BASE_URL = "http://127.0.0.1:8000";
+const ACCESS_TOKEN_KEY = "gmc_access_token";
+if (!localStorage.getItem(ACCESS_TOKEN_KEY)) {
+  window.location.replace("login.html");
+}
+
 const chatForm = document.querySelector("#chat-form");
 const messageInput = document.querySelector("#message-input");
 const sendButton = document.querySelector("#send-button");
@@ -96,14 +101,24 @@ function getErrorMessage(body, status) {
 
 async function apiRequest(path, { method = "GET", body } = {}) {
   const options = { method };
+  const headers = {};
   if (body !== undefined) {
-    options.headers = { "Content-Type": "application/json" };
+    headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(body);
   }
+  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  options.headers = headers;
 
   const response = await fetch(`${API_BASE_URL}${path}`, options);
   const responseBody = await response.json().catch(() => null);
   if (!response.ok) {
+    if (response.status === 401 && !path.startsWith("/auth/")) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      window.location.replace("login.html");
+    }
     throw new Error(getErrorMessage(responseBody, response.status));
   }
   return responseBody;
@@ -663,7 +678,22 @@ document.querySelector("#summarize-form").addEventListener("submit", (event) => 
   });
 });
 
-checkHealth();
-loadConversations();
-loadSavedQuizzes();
-loadSavedDecks();
+document.querySelector("#sign-out").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await apiRequest("/auth/logout", { method: "POST" });
+  } catch (error) {
+    console.error("Could not invalidate the session on the server.", error);
+  } finally {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.location.replace("login.html");
+  }
+});
+
+if (localStorage.getItem(ACCESS_TOKEN_KEY)) {
+  checkHealth();
+  loadConversations();
+  loadSavedQuizzes();
+  loadSavedDecks();
+}

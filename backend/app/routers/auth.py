@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from backend.app.services.db import crud
@@ -6,8 +7,10 @@ from backend.app.services.db.database import get_db
 from .models import LoginRequest, RegisterRequest, UserOut,TokenResponse
 from backend.app.security import hash_password,verify_password,create_access_token
 from datetime import datetime
-from backend.app.dependencies import get_current_user
+from backend.app.security import decode_access_token
+from backend.app.dependencies import get_current_user,bearer_scheme
 from backend.app.services.db import models
+from datetime import timezone, datetime
 router = APIRouter(prefix="/auth",tags=['auth'])
 
 @router.post("/register",response_model=TokenResponse,status_code=201)
@@ -29,4 +32,15 @@ def login(request:LoginRequest,db:Session = Depends(get_db)):
 @router.get("/me",response_model=UserOut)
 def me(current_user:models.User = Depends(get_current_user)):
     return current_user
-
+@router.post("/logout",status_code=204)
+def logout(
+    db:Session = Depends(get_db),
+    current_user : models.User = Depends(get_current_user),
+    credentials : HTTPAuthorizationCredentials = Depends(bearer_scheme)
+):
+    payload = decode_access_token(credentials.credentials)
+    expires_at = datetime.fromtimestamp(payload['exp'],tz = timezone.utc)
+    db.add(models.RevokedToken(jti=payload['jti'],expires_at= expires_at))
+    db.commit()
+    return Response(status_code=204)
+    

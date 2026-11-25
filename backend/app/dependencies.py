@@ -14,10 +14,12 @@ def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(
                           headers={'WWW-Authenticate': 'Bearer'})
     if credentials is None:
         raise error
-    user_id = decode_access_token(credentials.credentials)
-    if user_id is None:
+    payload = decode_access_token(credentials.credentials)
+    if payload["sub"] is None:
         raise error
-    user = db.get(models.User, user_id)
+    if db.get(models.RevokedToken,payload["jti"]) is not None:
+        raise error
+    user = db.get(models.User, payload["sub"])
     if user is None:
         raise error
     return user

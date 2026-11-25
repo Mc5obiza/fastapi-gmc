@@ -65,3 +65,7 @@ class FlashCard(Base):
     back = Column(Text,nullable=False)
     front = Column(Text,nullable=False)
     deck = relationship("FlashCardDeck",back_populates="flashcard")
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+    jti = Column(Text,nullable=False,unique=True,index=True,primary_key=True)
+    created_at = Column(DateTime,nullable=False)

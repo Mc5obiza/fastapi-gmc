@@ -1,15 +1,29 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  accent-color: var(--purple);
   font-family: "DM Sans", "Segoe UI", sans-serif;
-  color: #24253a;
-  background: #f7f8fc;
+  color: var(--ink);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --purple: #7658e8;
-  --purple-dark: #6546d5;
-  --ink: #24253a;
-  --muted: #89899b;
-  --line: #ececf3;
+  --purple-dark: #b5a2ff;
+  --ink: #f2f0f8;
+  --muted: #b3b0c2;
+  --line: #424052;
+  --page: #0c0c13;
+  --surface: #12121b;
+  --surface-raised: #191925;
+  --surface-input: #101019;
+  --surface-hover: #232333;
+  --surface-accent: rgb(118 88 232 / 16%);
+  --accent-border: #7567a1;
+  --control-border: #68657a;
+  --accent-text: #b5a2ff;
+  --text-body: #d3d0df;
+  --text-subtle: #aaa7b8;
+  --danger: #ff8c96;
+  --success: #68d39a;
 }
 
 * {
@@ -20,7 +34,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #f7f8fc;
+  background: var(--page);
 }
 
 button,
@@ -38,7 +52,7 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 3px solid rgb(118 88 232 / 35%);
+  outline: 3px solid rgb(177 155 255 / 55%);
   outline-offset: 2px;
 }
 
@@ -47,8 +61,8 @@ summary:focus-visible {
   width: min(1440px, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  background: #fff;
-  box-shadow: 0 0 70px rgb(46 44 79 / 5%);
+  background: var(--surface);
+  box-shadow: 0 0 70px rgb(0 0 0 / 30%);
 }
 
 .sidebar {
@@ -57,7 +71,7 @@ summary:focus-visible {
   flex-direction: column;
   padding: 29px 20px 20px;
   border-right: 1px solid var(--line);
-  background: #fcfcfe;
+  background: var(--surface);
 }
 
 .brand,
@@ -92,7 +106,7 @@ summary:focus-visible {
 }
 
 .brand-light {
-  color: var(--purple);
+  color: var(--accent-text);
 }
 
 .new-chat-button {
@@ -115,7 +129,7 @@ summary:focus-visible {
 
 .new-chat-button:hover,
 .send-button:hover {
-  background: var(--purple-dark);
+  background: #6546d5;
 }
 
 .new-chat-button:hover {
@@ -146,7 +160,7 @@ summary:focus-visible {
 .sidebar-history h2,
 .saved-section h2 {
   margin: 0 0 10px;
-  color: #77778a;
+  color: var(--text-subtle);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -171,7 +185,7 @@ summary:focus-visible {
 
 .saved-list-empty {
   padding: 8px 10px;
-  color: #9999a8;
+  color: var(--text-subtle);
   font-size: 10px;
 }
 
@@ -182,8 +196,8 @@ summary:focus-visible {
   overflow: hidden;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #68687b;
-  background: #f8f8fc;
+  color: var(--text-body);
+  background: var(--surface-raised);
   cursor: pointer;
   font-size: 11px;
   text-align: left;
@@ -193,15 +207,15 @@ summary:focus-visible {
 
 .saved-list button:hover,
 .saved-list button:focus-visible {
-  border-color: #e4def9;
+  border-color: var(--accent-border);
   color: var(--purple-dark);
-  background: #f6f3ff;
+  background: var(--surface-accent);
 }
 
 .saved-list button.is-selected {
-  border-color: #e4def9;
+  border-color: var(--accent-border);
   color: var(--purple-dark);
-  background: #f1eefe;
+  background: var(--surface-accent);
 }
 
 .sidebar-history .saved-list button {
@@ -210,7 +224,7 @@ summary:focus-visible {
 
 .sidebar-history .saved-list button:hover,
 .sidebar-history .saved-list button:focus-visible {
-  background: #f1eefe;
+  background: var(--surface-accent);
 }
 
 .saved-section {
@@ -218,20 +232,20 @@ summary:focus-visible {
 }
 
 .saved-section h2 {
-  color: #555568;
+  color: var(--text-body);
   font-size: 12px;
 }
 
 .saved-section .saved-list button {
   min-height: 40px;
   border-color: var(--line);
-  background: #fff;
+  background: var(--surface-raised);
 }
 
 .saved-section .saved-list button:hover,
 .saved-section .saved-list button:focus-visible {
-  border-color: #d7cdf8;
-  background: #faf9ff;
+  border-color: var(--accent-border);
+  background: var(--surface-hover);
 }
 
 .mobile-history {
@@ -246,7 +260,7 @@ summary:focus-visible {
   padding: 0 12px;
   border: 0;
   border-radius: 9px;
-  color: #77778a;
+  color: var(--text-subtle);
   background: transparent;
   cursor: pointer;
   font-size: 12px;
@@ -257,7 +271,7 @@ summary:focus-visible {
 
 .tool-tab span {
   width: 17px;
-  color: #9893a9;
+  color: var(--text-subtle);
   font-size: 15px;
   text-align: center;
 }
@@ -265,7 +279,7 @@ summary:focus-visible {
 .tool-tab:hover,
 .tool-tab.is-active {
   color: var(--purple-dark);
-  background: #f1eefe;
+  background: var(--surface-accent);
 }
 
 .tool-tab.is-active {
@@ -282,19 +296,19 @@ summary:focus-visible {
   gap: 11px;
   margin-top: 29px;
   padding: 15px 12px;
-  border: 1px solid #efecfb;
+  border: 1px solid var(--accent-border);
   border-radius: 12px;
-  background: #f8f6ff;
+  background: var(--surface-accent);
 }
 
 .note-icon {
-  color: var(--purple);
+  color: var(--accent-text);
   font-size: 16px;
 }
 
 .sidebar-note p {
   margin: 1px 0 0;
-  color: #737187;
+  color: var(--text-body);
   font-size: 12px;
   line-height: 1.65;
 }
@@ -305,7 +319,7 @@ summary:focus-visible {
   gap: 9px;
   margin-top: auto;
   padding: 15px 2px 0;
-  color: #808092;
+  color: var(--text-subtle);
   font-size: 11px;
 }
 
@@ -318,12 +332,12 @@ summary:focus-visible {
 
 .status-dot.is-online {
   background: #45be89;
-  box-shadow: 0 0 0 3px #e6f7ef;
+  box-shadow: 0 0 0 3px rgb(104 211 154 / 18%);
 }
 
 .status-dot.is-offline {
   background: #df6973;
-  box-shadow: 0 0 0 3px #fff0f1;
+  box-shadow: 0 0 0 3px rgb(255 140 150 / 18%);
 }
 
 .chat-panel {
@@ -380,12 +394,28 @@ summary:focus-visible {
 
 .topbar-badge {
   padding: 7px 10px;
-  border: 1px solid #eeecf5;
+  border: 1px solid var(--line);
   border-radius: 7px;
-  color: #827c99;
+  color: var(--text-subtle);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1px;
+}
+
+.account-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 9px;
+  color: var(--purple-dark);
+  background: var(--surface-raised);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.account-button:hover {
+  background: var(--surface-hover);
 }
 
 .mobile-new-chat {
@@ -443,7 +473,7 @@ summary:focus-visible {
 
 .eyebrow {
   margin: 0 0 13px;
-  color: #9a8acb;
+  color: #c1b2f3;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.7px;
@@ -466,7 +496,7 @@ summary:focus-visible {
 .welcome-copy {
   max-width: 420px;
   margin: 15px 0 0;
-  color: #89899a;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.75;
 }
@@ -485,23 +515,23 @@ summary:focus-visible {
   gap: 7px;
   min-height: 38px;
   padding: 0 13px;
-  border: 1px solid #ecebf3;
+  border: 1px solid var(--control-border);
   border-radius: 9px;
-  color: #646477;
-  background: #fff;
+  color: var(--text-body);
+  background: var(--surface-raised);
   cursor: pointer;
   font-size: 11px;
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
 .suggestion span {
-  color: var(--purple);
+  color: var(--accent-text);
 }
 
 .suggestion:hover {
-  border-color: #d7cdf8;
+  border-color: var(--accent-border);
   color: var(--purple-dark);
-  background: #faf9ff;
+  background: var(--surface-hover);
 }
 
 .messages {
@@ -536,18 +566,18 @@ summary:focus-visible {
 
 .message.user .message-avatar {
   order: 2;
-  color: #6d52ce;
-  background: #f0edfc;
+  color: #c6b7ff;
+  background: var(--surface-accent);
   font-size: 12px;
 }
 
 .message-content {
   max-width: min(80%, 590px);
   padding: 12px 15px;
-  border: 1px solid #eeeef4;
+  border: 1px solid var(--line);
   border-radius: 4px 14px 14px 14px;
-  color: #4a4a5d;
-  background: #fafafe;
+  color: var(--text-body);
+  background: var(--surface-raised);
   font-size: 13px;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -555,7 +585,7 @@ summary:focus-visible {
 }
 
 .message.user .message-content {
-  border-color: #7557e5;
+  border-color: var(--purple);
   border-radius: 14px 4px 14px 14px;
   color: #fff;
   background: var(--purple);
@@ -563,7 +593,7 @@ summary:focus-visible {
 
 .message-meta {
   margin-top: 5px;
-  color: #9999a8;
+  color: var(--text-subtle);
   font-size: 10px;
 }
 
@@ -578,7 +608,7 @@ summary:focus-visible {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #9b87e5;
+  background: #c0adff;
   animation: pulse 1s ease-in-out infinite;
 }
 
@@ -598,15 +628,15 @@ summary:focus-visible {
 
 .composer {
   padding: 13px 14px 10px 17px;
-  border: 1px solid #e8e7f0;
+  border: 1px solid var(--control-border);
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 7px 22px rgb(45 42 79 / 5%);
+  background: var(--surface-raised);
+  box-shadow: 0 7px 22px rgb(0 0 0 / 22%);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .composer:focus-within {
-  border-color: #cfc3f6;
+  border-color: var(--accent-border);
   box-shadow: 0 7px 22px rgb(118 88 232 / 9%);
 }
 
@@ -626,7 +656,7 @@ summary:focus-visible {
 }
 
 .composer textarea::placeholder {
-  color: #a0a0ad;
+  color: var(--text-subtle);
 }
 
 .composer-actions {
@@ -637,7 +667,7 @@ summary:focus-visible {
 }
 
 .input-hint {
-  color: #a1a1af;
+  color: var(--text-subtle);
   font-size: 10px;
 }
 
@@ -666,7 +696,7 @@ summary:focus-visible {
 
 .disclaimer {
   margin: 10px 0 0;
-  color: #a2a2af;
+  color: var(--text-subtle);
   font-size: 10px;
   text-align: center;
 }
@@ -692,10 +722,10 @@ summary:focus-visible {
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid #eae5fb;
+  border: 1px solid var(--accent-border);
   border-radius: 14px;
-  color: var(--purple);
-  background: #f7f5ff;
+  color: var(--accent-text);
+  background: var(--surface-accent);
   font-size: 19px;
 }
 
@@ -726,13 +756,13 @@ summary:focus-visible {
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 5px 18px rgb(45 42 79 / 4%);
+  background: var(--surface-raised);
+  box-shadow: 0 5px 18px rgb(0 0 0 / 20%);
 }
 
 .field-label {
   margin-top: 4px;
-  color: #555568;
+  color: var(--text-body);
   font-size: 11px;
   font-weight: 600;
 }
@@ -742,11 +772,11 @@ summary:focus-visible {
   width: 100%;
   min-height: 42px;
   padding: 10px 12px;
-  border: 1px solid #e7e6ef;
+  border: 1px solid var(--control-border);
   border-radius: 9px;
   outline: none;
   color: var(--ink);
-  background: #fdfdff;
+  background: var(--surface-input);
   font-size: 12px;
 }
 
@@ -758,7 +788,7 @@ summary:focus-visible {
 
 .tool-form input::placeholder,
 .tool-form textarea::placeholder {
-  color: #a1a1af;
+  color: var(--text-subtle);
 }
 
 .field-grid {
@@ -776,7 +806,7 @@ summary:focus-visible {
 
 .field-help {
   margin: -5px 0 2px;
-  color: #9292a1;
+  color: var(--text-subtle);
   font-size: 10px;
 }
 
@@ -799,7 +829,7 @@ summary:focus-visible {
 }
 
 .primary-button:hover {
-  background: var(--purple-dark);
+  background: #6546d5;
 }
 
 .primary-button:disabled {
@@ -809,7 +839,7 @@ summary:focus-visible {
 
 .tool-error {
   margin: 1px 0 0;
-  color: #b34450;
+  color: var(--danger);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -845,12 +875,12 @@ summary:focus-visible {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface-raised);
 }
 
 .quiz-question h3 {
   margin: 0 0 13px;
-  color: #424256;
+  color: var(--text-body);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -868,17 +898,17 @@ summary:focus-visible {
   align-items: flex-start;
   gap: 9px;
   padding: 9px 10px;
-  border: 1px solid #eeedf4;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  color: #666679;
+  color: var(--text-body);
   cursor: pointer;
   font-size: 11px;
   line-height: 1.5;
 }
 
 .quiz-option:has(input:checked) {
-  border-color: #cfc3f6;
-  background: #faf9ff;
+  border-color: var(--accent-border);
+  background: var(--surface-hover);
 }
 
 .quiz-option input {
@@ -888,28 +918,28 @@ summary:focus-visible {
 }
 
 .quiz-option.is-correct {
-  border-color: #a9dec4;
-  background: #f2fbf6;
+  border-color: #3c8760;
+  background: rgb(104 211 154 / 10%);
 }
 
 .quiz-option.is-incorrect {
-  border-color: #efc3c6;
-  background: #fff7f7;
+  border-color: #914c55;
+  background: rgb(255 140 150 / 10%);
 }
 
 .quiz-feedback {
   min-height: 17px;
   margin-top: 9px;
-  color: #717184;
+  color: var(--text-subtle);
   font-size: 10px;
 }
 
 .quiz-feedback.is-correct {
-  color: #278359;
+  color: var(--success);
 }
 
 .quiz-feedback.is-incorrect {
-  color: #b34450;
+  color: var(--danger);
 }
 
 .results-action {
@@ -924,7 +954,7 @@ summary:focus-visible {
 
 .flashcard summary {
   padding: 16px;
-  color: #45455a;
+  color: var(--text-body);
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -934,13 +964,13 @@ summary:focus-visible {
 .flashcard[open] summary {
   border-bottom: 1px solid var(--line);
   color: var(--purple-dark);
-  background: #faf9ff;
+  background: var(--surface-hover);
 }
 
 .flashcard-answer {
   margin: 0;
   padding: 14px 16px 16px;
-  color: #6d6d7f;
+  color: var(--text-body);
   font-size: 12px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -951,7 +981,7 @@ summary:focus-visible {
   gap: 12px;
   margin: 0;
   padding-left: 20px;
-  color: #555568;
+  color: var(--text-body);
   font-size: 12px;
   line-height: 1.75;
 }
@@ -1038,6 +1068,12 @@ summary:focus-visible {
     display: none;
   }
 
+  .account-button {
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
   .mobile-tools {
     display: flex;
     flex-direction: row;
@@ -1046,7 +1082,7 @@ summary:focus-visible {
     padding: 7px 12px;
     overflow-x: auto;
     border-bottom: 1px solid var(--line);
-    background: #fff;
+    background: var(--surface);
   }
 
   .mobile-tools .tool-tab {
@@ -1069,10 +1105,10 @@ summary:focus-visible {
     justify-content: center;
     min-height: 34px;
     padding: 0 10px;
-    border: 1px solid #e8e4f6;
+    border: 1px solid var(--control-border);
     border-radius: 9px;
     color: var(--purple-dark);
-    background: #fff;
+    background: var(--surface-raised);
     cursor: pointer;
     font-size: 11px;
     font-weight: 600;
@@ -1089,14 +1125,19 @@ summary:focus-visible {
     min-height: 34px;
     place-items: center;
     padding: 0 10px;
-    border: 1px solid #e8e4f6;
+    border: 1px solid var(--control-border);
     border-radius: 9px;
     color: var(--purple-dark);
-    background: #fff;
+    background: var(--surface-raised);
     cursor: pointer;
     font-size: 11px;
     font-weight: 600;
     list-style: none;
+  }
+
+  .mobile-new-chat:hover,
+  .mobile-history summary:hover {
+    background: var(--surface-hover);
   }
 
   .mobile-history summary::-webkit-details-marker {
@@ -1114,8 +1155,8 @@ summary:focus-visible {
     overflow-y: auto;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 12px 30px rgb(45 42 79 / 14%);
+    background: var(--surface-raised);
+    box-shadow: 0 12px 30px rgb(0 0 0 / 40%);
   }
 
   .conversation {
@@ -1197,5 +1238,149 @@ summary:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgb(157 123 255 / 14%), transparent 42%),
+    var(--page);
+}
+
+.auth-card {
+  width: min(100%, 430px);
+  padding: 38px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-raised);
+  box-shadow: 0 18px 55px rgb(0 0 0 / 40%);
+}
+
+.auth-card .brand {
+  margin-bottom: 36px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 27px;
+  letter-spacing: -0.8px;
+}
+
+.auth-description {
+  margin: 9px 0 25px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-form label {
+  margin-top: 5px;
+  color: var(--text-body);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 9px;
+  color: var(--ink);
+  background: var(--surface-input);
+  font-size: 13px;
+}
+
+.auth-form input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.auth-requirements {
+  margin: 0 0 -3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auth-error {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.auth-error:empty {
+  display: none;
+}
+
+.auth-submit {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 11px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--purple);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-submit:hover {
+  background: #6546d5;
+}
+
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.auth-switch {
+  margin: 22px 0 0;
+  color: var(--text-subtle);
+  font-size: 12px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--purple-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 430px) {
+  .auth-card {
+    padding: 28px 22px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line: #777489;
+    --muted: #d3d0df;
+    --text-subtle: #d3d0df;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible {
+    outline-color: #fff;
   }
 }

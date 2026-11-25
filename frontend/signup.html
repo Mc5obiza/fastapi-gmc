@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0c0c13">
+    <title>Sign up - GMC AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="auth.js" defer></script>
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <a class="brand" href="login.html" aria-label="GMC AI Assistant">
+        <span class="brand-mark" aria-hidden="true">g</span>
+        <span>gmc<span class="brand-light">.ai</span></span>
+      </a>
+      <p class="eyebrow">GET STARTED</p>
+      <h1>Create your account</h1>
+      <p class="auth-description">Save your study tools and conversations in one place.</p>
+
+      <form class="auth-form" id="auth-form" data-endpoint="/auth/register">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+
+        <p class="auth-requirements" id="password-requirements">Use a password between 8 and 30 characters.</p>
+        <label for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          minlength="8"
+          maxlength="30"
+          autocomplete="new-password"
+          aria-describedby="password-requirements"
+          required
+        >
+
+        <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
+        <button class="auth-submit" type="submit">Create account</button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="login.html">Log in</a></p>
+    </main>
+  </body>
+</html>
