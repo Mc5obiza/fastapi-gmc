@@ -1,4 +1,4 @@
-from fastapi import HTTPException,APIRouter,Depends
+from fastapi import HTTPException,APIRouter,Depends,Response
 from .models import QuizzResponse,QuizzRequest,QuizDetailResponse
 from backend.app.services.ai import AIServiceError
 from backend.app.services.errors import ai_error_http
@@ -7,19 +7,28 @@ from backend.app.services.db.database import get_db
 from backend.app.services.db import crud
 from backend.app.dependencies import get_current_user
 from backend.app.services.db.models import User
+from backend.app.services.cache import make_key,cache_get,cache_set
 from sqlalchemy.orm import Session
 router = APIRouter(prefix="/quizz",tags=["quizz"])
 
 @router.post('/',response_model=QuizzResponse)
-def quizz(request:QuizzRequest,db : Session=Depends(get_db), current_user: User = Depends(get_current_user)):
+def quizz(request:QuizzRequest,http_response : Response,db : Session=Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
         subject = request.subject.strip()
         number_questions = request.number_quizzes
         number_options = request.number_options
-        response = generate_quizz(subject,number_questions,number_options)
-        quiz_id = crud.add_quiz(db,current_user.id,request.subject)
-        for question in response.quizz:
-            crud.add_question(db,current_user.id,quiz_id,question.question,question.options,correct_answer=question.correct)
+        key = make_key('quizz',subject,number_questions,number_options)
+        cache = cache_get(key)
+        if cache is not None:
+            response=QuizzResponse(**cache)
+            http_response.headers["X-Cache"] = 'HIT'
+        else:
+            response = generate_quizz(subject,number_questions,number_options)
+            cache_set(key,response.model_dump())
+            http_response.headers["X-Cache"] = 'MISS'
+            quiz_id = crud.add_quiz(db,current_user.id,request.subject)
+            for question in response.quizz:
+                crud.add_question(db,current_user.id,quiz_id,question.question,question.options,correct_answer=question.correct)
     except AIServiceError as error:
         raise ai_error_http(error)
     return response
