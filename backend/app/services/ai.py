@@ -2,6 +2,7 @@ from openai import OpenAI, AuthenticationError, RateLimitError
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from backend.app.routers.models import ChatResponse
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 SYSTEM_PROMPT = """You are an AI Teacher and Academic Student Assistant.
@@ -112,11 +113,11 @@ def call_llm(history):
     client= get_client()
     try:
         messages = [{"role":"system","content":SYSTEM_PROMPT}] + history
-        response = client.chat.completions.create(
+        response = client.beta.chat.completions.parse(
                 model = "openrouter/free",
                 messages = messages,
-                temperature=0.7,
-                max_tokens=700   )
+                temperature=0.2,
+                response_format=ChatResponse)
     except AuthenticationError as error:
         raise AIServiceError("auth","Invalid API key")
     except RateLimitError as error:
@@ -125,10 +126,6 @@ def call_llm(history):
         raise AIServiceError("Unkown",str(e))
     answer = response.choices[0].message.content or ""
     tokens_used = response.usage.total_tokens if response.usage else 0
-    return {
-        "answer" : answer,
-        "model" : response.model or "No model",
-        "tokens_used" : tokens_used
-    }
+    return response.choices[0].message.parsed
 if __name__ == "__main__":
     print(call_llm("Explain to me statistics"))

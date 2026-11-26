@@ -15,6 +15,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(
     if credentials is None:
         raise error
     payload = decode_access_token(credentials.credentials)
+    if payload is None:
+        raise error
     if payload["sub"] is None:
         raise error
     if db.get(models.RevokedToken,payload["jti"]) is not None:

@@ -39,6 +39,14 @@ def add_message(db:Session, user_id, role,content,conversation_id = None,tokens_
     db.commit()
     db.refresh(message)
     return message.id,conversation.id
+def update_title(db:Session,user_id,convesation_id,new_title):
+    conversation = get_conversation(db,conversation_id=convesation_id,user_id=user_id)
+    if conversation is None:
+        raise LookupError("Conversation not found")
+    conversation.title = new_title
+    db.commit()
+    db.refresh(conversation)
+    return conversation
 def get_messages(db:Session, conversation_id, user_id):
     return (
         db.query(models.Message).join(models.Conversation).filter(
@@ -139,6 +147,23 @@ def add_card(db: Session, user_id, deck_id, front, back):
     return add_flashcard(db, user_id, deck_id, front, back)
 def lookup_by_email(db:Session,email):
     return db.query(models.User).filter(models.User.email == email).first()
-
+def delete_conversation(db:Session,conversation_id,user_id):
+    conversation = get_conversation(db,conversation_id,user_id)
+    if conversation is None:
+        raise LookupError("Conversation Not found")
+    db.query(models.Message).filter(
+        models.Message.conversation_id == conversation.id
+    ).delete()
+    db.delete(conversation)
+    db.commit()
+    return True
+def delete_user(db:Session,user_id):
+    user = db.get(models.User,user_id)
+    if user is None:
+        return False
+    db.delete(user)
+    db.commit()
+    return True
+    
 if __name__ == "__main__":
     print(add_user(SessionLocal(),"ex@example.com","123456"))
