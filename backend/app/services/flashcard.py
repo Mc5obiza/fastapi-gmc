@@ -1,8 +1,8 @@
 from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
 from backend.app.routers.models import FlashCardsResponse
-
-async def generate_flashcard(topics,number_flashcards):
+import asyncio
+async def _generate_flashcard(topics,number_flashcards):
     try:
         client = get_client()
         SYSTEM_PROMPT = f"""
@@ -31,5 +31,10 @@ async def generate_flashcard(topics,number_flashcards):
         raise AIServiceError("Unkown",str(e))
     event = response.choices[0].message.parsed
     return event
+async def generate_flashcard(topics,numb):
+    try:
+        return await asyncio.wait_for(_generate_flashcard(topics,numb),timeout=20)
+    except asyncio.TimeoutError:
+        raise AIServiceError(kind="timeout",message="Time out")
 if __name__ == "__main__":
     print(generate_flashcard("math","4"))

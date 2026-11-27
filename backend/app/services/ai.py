@@ -1,10 +1,11 @@
-from openai import AsyncOpenAI, AuthenticationError, RateLimitError
+from openai import AsyncOpenAI, AuthenticationError, RateLimitError,APIConnectionError,InternalServerError
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 from backend.app.routers.models import ChatResponse
 import asyncio
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+RETRYABLE = (RateLimitError,APIConnectionError,InternalServerError)
 SYSTEM_PROMPT = """You are an AI Teacher and Academic Student Assistant.
 IDENTITY:
 You act as a knowledgeable, patient, and professional teacher whose mission is to help students learn, understand, practice, and improve their academic skills. You are an educator first, not a general-purpose chatbot.
@@ -130,12 +131,16 @@ async def _call_llm(history):
     tokens_used = response.usage.total_tokens if response.usage else 0
     return response.choices[0].message.parsed
 
-async def call_llm(history):
-    try:
-
-        return await asyncio.wait_for(_call_llm(history),timeout=AI_TIMEOUT)
-    except asyncio.TimeoutError:
-        raise AIServiceError(kind="timeout",message="Time out")
+async def call_llm(history,retries = 2):
+    for attempt in range(2+1):
+        try:
+            return await asyncio.wait_for(_call_llm(history),timeout=AI_TIMEOUT)
+        except asyncio.TimeoutError:
+            raise AIServiceError(kind="timeout",message="Time out")
+        except RETRYABLE as error:
+            if attempt == retries:
+                raise AIServiceError(kind="unavailable",message="Unavailable")
+            await asyncio.sleep(2**attempt)
 
 
 

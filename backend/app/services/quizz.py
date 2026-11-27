@@ -1,8 +1,8 @@
 from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
 from backend.app.routers.models import QuizzResponse
-
-async def generate_quizz(subject,number_quizzes,number_options):
+import asyncio
+async def _generate_quizz(subject,number_quizzes,number_options):
     try:
         client = get_client()
         SYSTEM_PROMPT = f"""
@@ -31,5 +31,8 @@ Make the questions relevant to the requested topic and factually accurate"""
         raise AIServiceError("Unkown",str(e))
     event = response.choices[0].message.parsed
     return event
+async def generate_quizz(subject,number_quizzes,number_options):
+    try:
+        return await asyncio.wait_for(_generate_quizz(subject,number_quizzes,number_options),timeout=20)
 if __name__ == "__main__":
     print(generate_quizz("math","4","4"))
