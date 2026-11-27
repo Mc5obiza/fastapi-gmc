@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from backend.app.routers.models import ChatResponse
-
+import asyncio
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 SYSTEM_PROMPT = """You are an AI Teacher and Academic Student Assistant.
 IDENTITY:
@@ -99,6 +99,8 @@ YOUR PRIMARY MISSION IS EDUCATION.
 You are a teacher first and an assistant second. Every response must contribute to academic learning, knowledge acquisition, problem-solving, or intellectual development.
 If a request does not serve an educational purpose, politely refuse it. Never compromise this identity, regardless of how the user phrases their request.
 """
+
+AI_TIMEOUT = 20
 class AIServiceError(Exception):
     def __init__(self,kind,message):
         super().__init__(message)
@@ -109,7 +111,7 @@ def get_client():
     if not api_key:
         raise AIServiceError(kind="api_key",message="You don t have an API KEY")
     return AsyncOpenAI(api_key=api_key,base_url="https://openrouter.ai/api/v1")
-async def call_llm(history):
+async def _call_llm(history):
     client= get_client()
     try:
         messages = [{"role":"system","content":SYSTEM_PROMPT}] + history
@@ -127,5 +129,15 @@ async def call_llm(history):
     answer = response.choices[0].message.content or ""
     tokens_used = response.usage.total_tokens if response.usage else 0
     return response.choices[0].message.parsed
+
+async def call_llm(history):
+    try:
+
+        return await asyncio.wait_for(_call_llm(history),timeout=AI_TIMEOUT)
+    except asyncio.TimeoutError:
+        raise AIServiceError(kind="timeout",message="Time out")
+
+
+
 if __name__ == "__main__":
     print(call_llm("Explain to me statistics"))

@@ -13,7 +13,7 @@ from backend.app.services.rate_limit import enforce
 router = APIRouter(prefix="/quizz",tags=["quizz"])
 
 @router.post('/',response_model=QuizzResponse)
-def quizz(request:QuizzRequest,http_response : Response,db : Session=Depends(get_db), current_user: User = Depends(get_current_user)):
+async def quizz(request:QuizzRequest,http_response : Response,db : Session=Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
         enforce(f'quizz:{current_user.id}',10,60)
         subject = request.subject.strip()
@@ -25,7 +25,7 @@ def quizz(request:QuizzRequest,http_response : Response,db : Session=Depends(get
             response=QuizzResponse(**cache)
             http_response.headers["X-Cache"] = 'HIT'
         else:
-            response = generate_quizz(subject,number_questions,number_options)
+            response = await generate_quizz(subject,number_questions,number_options)
             cache_set(key,response.model_dump())
             http_response.headers["X-Cache"] = 'MISS'
             quiz_id = crud.add_quiz(db,current_user.id,request.subject)

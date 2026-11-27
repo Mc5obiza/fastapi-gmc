@@ -6,4 +6,6 @@ def ai_error_http(error:AIServiceError):
         return HTTPException(status_code=429,detail=error.message)
     if error.kind == "auth":
         return HTTPException(status_code=500,detail=error.message)
+    if error.kind == "timeout":
+        return HTTPException(status_code=408,detail=error.message)
     return error

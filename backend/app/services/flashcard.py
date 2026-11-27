@@ -2,7 +2,7 @@ from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
 from backend.app.routers.models import FlashCardsResponse
 
-def generate_flashcard(topics,number_flashcards):
+async def generate_flashcard(topics,number_flashcards):
     try:
         client = get_client()
         SYSTEM_PROMPT = f"""
@@ -11,7 +11,7 @@ def generate_flashcard(topics,number_flashcards):
         Generate exactly {number_flashcards} flashcards about the requested topic.
         Make them clear, concise, and factually accurate."""
         user_message = f"Generate {number_flashcards} FlashCards about {topics}"
-        response = client.beta.chat.completions.parse(
+        response = await client.beta.chat.completions.parse(
             model = "openrouter/free",
             messages=[{
                 "role":"system",

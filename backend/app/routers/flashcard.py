@@ -20,7 +20,7 @@ from backend.app.services.rate_limit import enforce
 router = APIRouter(prefix="/flashcard",tags=["flashcards"])
 
 @router.post("/",response_model=FlashCardsResponse)
-def flashcard(request: FlashCardsRequest,http_response:Response,db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def flashcard(request: FlashCardsRequest,http_response:Response,db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
         enforce(f'flashcard:{current_user.id}',10,60)
         clean_topic = request.topic.strip()
@@ -31,7 +31,7 @@ def flashcard(request: FlashCardsRequest,http_response:Response,db: Session = De
             response = FlashCardsResponse(**cache)
             http_response.headers["X-Cache"] = "HIT"
         else:
-            response = generate_flashcard(clean_topic, request.number_flashcards)
+            response = await generate_flashcard(clean_topic, request.number_flashcards)
             cache_set(key,response.model_dump())
             http_response.headers["X-Cache"] = "MISS"
             deck_id = add_deck(db, current_user.id, clean_topic)

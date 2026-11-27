@@ -2,7 +2,7 @@ from openai import OpenAI,AuthenticationError,RateLimitError
 from .ai import AIServiceError,get_client
 from backend.app.routers.models import QuizzResponse
 
-def generate_quizz(subject,number_quizzes,number_options):
+async def generate_quizz(subject,number_quizzes,number_options):
     try:
         client = get_client()
         SYSTEM_PROMPT = f"""
@@ -11,7 +11,7 @@ Generate multiple-choice quiz questions.fr
 Each question must have exactly {number_options} options and exactly one correct answer.
 Make the questions relevant to the requested topic and factually accurate"""
         user_message = f"Generate {number_quizzes} questions about {subject}"
-        response = client.beta.chat.completions.parse(
+        response = await client.beta.chat.completions.parse(
             model = "openrouter/free",
             messages=[{
                 "role":"system",
