@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends,HTTPException
+from fastapi import APIRouter, Depends,HTTPException,Response
 
 from .models import FlashCardsRequest,FlashCardsResponse,FlashCard,FlashCardDeckSummary
 from backend.app.services.flashcard import generate_flashcard
 from backend.app.services.ai import AIServiceError
 from backend.app.services.errors import ai_error_http
 from backend.app.services.db import crud
+from backend.app.services.cache import cache_get,cache_set,make_key
 from backend.app.dependencies import get_current_user
 from backend.app.services.db.models import User
 from backend.app.services.db.crud import (
@@ -14,18 +15,29 @@ from backend.app.services.db.crud import (
 )
 from backend.app.services.db.database import get_db
 from sqlalchemy.orm import Session
+from backend.app.services.rate_limit import enforce
 
 router = APIRouter(prefix="/flashcard",tags=["flashcards"])
 
 @router.post("/",response_model=FlashCardsResponse)
-def flashcard(request: FlashCardsRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def flashcard(request: FlashCardsRequest,http_response:Response,db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
+        enforce(f'flashcard:{current_user.id}',10,60)
         clean_topic = request.topic.strip()
-        response = generate_flashcard(clean_topic, request.number_flashcards)
-        deck_id = add_deck(db, current_user.id, clean_topic)
-        print(deck_id)
-        for card in response.flashcards:
-            add_flashcard(db, current_user.id, deck_id, card.front, card.back)
+        number = request.number_flashcards
+        key = make_key("flashcard",clean_topic,number)
+        cache = cache_get(key)
+        if  cache is not None and not request.new:
+            response = FlashCardsResponse(**cache)
+            http_response.headers["X-Cache"] = "HIT"
+        else:
+            response = generate_flashcard(clean_topic, request.number_flashcards)
+            cache_set(key,response.model_dump())
+            http_response.headers["X-Cache"] = "MISS"
+            deck_id = add_deck(db, current_user.id, clean_topic)
+            print(deck_id)
+            for card in response.flashcards:
+                add_flashcard(db, current_user.id, deck_id, card.front, card.back)
     except AIServiceError as error:
         raise ai_error_http(error)
     return response

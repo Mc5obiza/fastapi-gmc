@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException,Depends
+from fastapi import FastAPI,HTTPException,Depends, Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +12,7 @@ from backend.app.routers import chat, flashcard , conversation
 from .services.db import models
 from .services.db.database import Base, engine,get_db
 from backend.app.routers import auth
+from backend.app.services.cache import cache_ping
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -43,9 +44,18 @@ def about():
     }
 
 @app.get("/health")
-def health():
+def health(db:Session = Depends(get_db)):
+    if not cache_ping():
+        raise HTTPException(status_code=503,detail="Cache service is unavailable")
+    try:
+        db.execute(text("SELECT 1"))
+        databse_status = "connected"
+    except Exception as e:
+        raise HTTPException(status_code=500,detail="Database service is unavailable")
     return {
         "status":"ok",
+        "database_status":databse_status,
+        "cache_status":"connected",
         "message":"API IS RUNNING",
         "timestamp":datetime.now(timezone.utc).isoformat(),
         "version":"0.2.0"

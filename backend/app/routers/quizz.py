@@ -9,17 +9,19 @@ from backend.app.dependencies import get_current_user
 from backend.app.services.db.models import User
 from backend.app.services.cache import make_key,cache_get,cache_set
 from sqlalchemy.orm import Session
+from backend.app.services.rate_limit import enforce
 router = APIRouter(prefix="/quizz",tags=["quizz"])
 
 @router.post('/',response_model=QuizzResponse)
 def quizz(request:QuizzRequest,http_response : Response,db : Session=Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
+        enforce(f'quizz:{current_user.id}',10,60)
         subject = request.subject.strip()
         number_questions = request.number_quizzes
         number_options = request.number_options
         key = make_key('quizz',subject,number_questions,number_options)
         cache = cache_get(key)
-        if cache is not None:
+        if cache is not None and not request.new:
             response=QuizzResponse(**cache)
             http_response.headers["X-Cache"] = 'HIT'
         else:

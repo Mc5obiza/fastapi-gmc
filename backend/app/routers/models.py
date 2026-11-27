@@ -14,6 +14,7 @@ class QuizzRequest(BaseModel):
     subject:str = Field(...,min_length=2,max_length=100)
     number_quizzes : int = Field(default = 3,ge=3,le=10)
     number_options : int = Field(default = 4,ge=4,le=6)
+    new : bool = False
 
 class Quizz(BaseModel):
     question:str
@@ -46,7 +47,7 @@ class SummarizeResponse(BaseModel):
 class FlashCardsRequest(BaseModel):
     topic:str = Field(...,min_length=3,max_length=10)
     number_flashcards: int = Field(default=7,ge = 7, le = 18)
-
+    new : bool = False
 class FlashCard(BaseModel):
     front:str
     back:str
