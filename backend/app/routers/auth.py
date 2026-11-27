@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -11,6 +11,9 @@ from backend.app.security import decode_access_token
 from backend.app.dependencies import get_current_user,bearer_scheme
 from backend.app.services.db import models
 from datetime import timezone, datetime
+from backend.app.services.rate_limit import enforce
+
+
 router = APIRouter(prefix="/auth",tags=['auth'])
 
 @router.post("/register",response_model=TokenResponse,status_code=201)
@@ -24,7 +27,8 @@ def register(request:RegisterRequest,db:Session = Depends(get_db)):
     user_id = crud.add_user(db,email,password_hash)   
     return TokenResponse(access_token=create_access_token(user_id=user_id))
 @router.post("/login",response_model=TokenResponse)
-def login(request:LoginRequest,db:Session = Depends(get_db)):
+def login(request:LoginRequest,http_request:Request,db:Session = Depends(get_db)):
+    enforce(f'login{http_request.client.host}',5,60)
     user = crud.lookup_by_email(db,request.email.lower())
     if user is None or not verify_password(request.password,user.password_hash):
         raise HTTPException(status_code=401,detail="Invalid email or password")

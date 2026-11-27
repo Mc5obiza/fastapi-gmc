@@ -1,9 +1,13 @@
-openai
-python-dotenv
+bcrypt
+email-validator
 fastapi
-sqlalchemy
-uvicorn
 httpx
+openai
+pydantic
 pytest
 pytest-asyncio
+python-dotenv
+PyJWT
 redis
+SQLAlchemy
+uvicorn
