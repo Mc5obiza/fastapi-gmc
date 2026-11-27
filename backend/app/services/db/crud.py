@@ -47,15 +47,18 @@ def update_title(db:Session,user_id,convesation_id,new_title):
     db.commit()
     db.refresh(conversation)
     return conversation
-def get_messages(db:Session, conversation_id, user_id):
-    return (
+def get_messages(db:Session, conversation_id, user_id,limit = None):
+    query = (
         db.query(models.Message).join(models.Conversation).filter(
             models.Conversation.id == conversation_id,
             models.Conversation.user_id == user_id
         )
         .order_by(models.Message.id)
-        .all()
     )
+    if limit is None:
+        return query.all()
+    rows = query.order_by(models.Message.id.desc()).limit(limit).all()
+    return list(reversed(rows))
 def get_quizz(db:Session,quiz_id,user_id):
     return db.query(models.Quizz).filter(
         models.Quizz.id == quiz_id,

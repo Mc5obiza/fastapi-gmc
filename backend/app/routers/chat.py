@@ -8,6 +8,8 @@ from backend.app.services.db import models
 from backend.app.dependencies import get_current_user
 from sqlalchemy.orm import Session
 from backend.app.services.rate_limit import enforce
+
+MAX_MESSAGES = 20
 router = APIRouter(prefix="/chat",
                    tags = ["chat"])
 @router.post("/",response_model=ChatResponse)
@@ -16,7 +18,7 @@ def chat(request:ChatRequest,db:Session = Depends(get_db),
     enforce(f'chat:{current_user.id}',20,60)
     history = []
     if request.conversation_id is not None:
-        messages = get_messages(db,request.conversation_id,current_user.id)
+        messages = get_messages(db,request.conversation_id,current_user.id,limit = MAX_MESSAGES)
         history = [{"role":msg.role,"content":msg.content} for msg in messages]
     clean_msg = request.message.strip()
     messages = history + [{"role":"user","content":clean_msg}]
