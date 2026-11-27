@@ -13,7 +13,7 @@ MAX_MESSAGES = 20
 router = APIRouter(prefix="/chat",
                    tags = ["chat"])
 @router.post("/",response_model=ChatResponse)
-def chat(request:ChatRequest,db:Session = Depends(get_db),
+async def chat(request:ChatRequest,db:Session = Depends(get_db),
          current_user:models.User = Depends(get_current_user)):
     enforce(f'chat:{current_user.id}',20,60)
     history = []
@@ -26,7 +26,7 @@ def chat(request:ChatRequest,db:Session = Depends(get_db),
         raise HTTPException(status_code=400,
                             detail="Message can not be empty")
     try:
-        result = call_llm(messages)
+        result = await call_llm(messages)
         message_id,conversation_id = add_message(db,current_user.id,"user",clean_msg,conversation_id=request.conversation_id)
         convesation = update_title(db,current_user.id,conversation_id,result.title)
         message_id,conversation_id = add_message(db,current_user.id,"assistant",result.answer,conversation_id=conversation_id,tokens_used=result.tokens_used)

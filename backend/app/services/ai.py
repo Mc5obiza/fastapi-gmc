@@ -1,4 +1,4 @@
-from openai import OpenAI, AuthenticationError, RateLimitError
+from openai import AsyncOpenAI, AuthenticationError, RateLimitError
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -108,12 +108,12 @@ def get_client():
     api_key = os.getenv("OPEN_ROUTER_KEY")
     if not api_key:
         raise AIServiceError(kind="api_key",message="You don t have an API KEY")
-    return OpenAI(api_key=api_key,base_url="https://openrouter.ai/api/v1")
-def call_llm(history):
+    return AsyncOpenAI(api_key=api_key,base_url="https://openrouter.ai/api/v1")
+async def call_llm(history):
     client= get_client()
     try:
         messages = [{"role":"system","content":SYSTEM_PROMPT}] + history
-        response = client.beta.chat.completions.parse(
+        response =await client.beta.chat.completions.parse(
                 model = "openrouter/free",
                 messages = messages,
                 temperature=0.2,
